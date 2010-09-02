@@ -12,23 +12,23 @@ case class ConditionInvariant[T](condition: T => Boolean, message: String) exten
 }
 
 case class InRange[T <: Number](min: T, max: T) extends Invariant[T] {
-  def check(value: T) = if (value < min || value > max) "should be between " + min + " and " + max else null
+  def check(value: T) = if (value.doubleValue < min.doubleValue || value.doubleValue > max.doubleValue) "should be between " + min + " and " + max else null
 }
 
 case class Larger[T <: Number](min: T) extends Invariant[T] {
-  def check(value: T) = if (value <= min) "should be larger than " + min else null
+  def check(value: T) = if (value.doubleValue <= min.doubleValue) "should be larger than " + min else null
 }
 
 case class LargerOrEqual[T <: Number](min: T) extends Invariant[T] {
-  def check(value: T) = if (value < min) "should be larger or equal to " + min else null
+  def check(value: T) = if (value.doubleValue < min.doubleValue) "should be larger or equal to " + min else null
 }
 
 case class Smaller[T <: Number](max: T) extends Invariant[T] {
-  def check(value: T) = if (value >= max) "should be smaller than " + max else null
+  def check(value: T) = if (value.doubleValue >= max.doubleValue) "should be smaller than " + max else null
 }
 
 case class SmallerOrEqual[T <: Number](max: T) extends Invariant[T] {
-  def check(value: T) = if (value > max) "should be smaller or equal to " + max else null
+  def check(value: T) = if (value.doubleValue > max.doubleValue) "should be smaller or equal to " + max else null
 }
 
 case class NotNull[T]() extends Invariant[T] {

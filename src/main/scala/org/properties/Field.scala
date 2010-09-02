@@ -13,19 +13,19 @@ class Field[T](val name: Symbol, initialValue: T) extends Property[T] {
   private var listeners: List[ChangeListener] = Nil
   private var translators: List[Translator] = Nil
 
-  def translate(translator: Translator) = { translators = translator :: translators; this }
+  def translate(translator: Translator): Field[T] = { translators = translator :: translators; this }
   
-  def require(invariant: Invariant[T]) =  { invariants = invariant :: invariants; this }
-  def require(invariant: T => Boolean, message: String = "Incorrect value") = require(ConditionInvariant(invariant, message))
+  def require(invariant: Invariant[T]): Field[T] =  { invariants = invariant :: invariants; this }
+  def require(invariant: T => Boolean, message: String = "Incorrect value"): Field[T] = require(ConditionInvariant(invariant, message))
 
-  def onChange(listener: ChangeListener) = { listeners = listener :: listeners; this }
-  def onChange(listener: () => Unit) = onChange( p => listener() )
+  def onChange(listener: ChangeListener): Field[T] = { listeners = listener :: listeners; this }
+  def onChange(listener: () => Unit): Field[T] = onChange( p => listener() )
 
   def get: T = value
   def set(newValue: T) = {
     if (value != newValue) {
       var translatedVal = newValue
-      translators foreach (translatedVal = _(translatedVal))
+      translators foreach (t => translatedVal = t(translatedVal))
       invariants foreach ( checkInvariant(_, translatedVal) )
 
       value = translatedVal
