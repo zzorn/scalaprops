@@ -130,6 +130,7 @@
 
   <reporting>
     <plugins>
+
       <plugin>
         <groupId>org.scala-tools</groupId>
         <artifactId>maven-scala-plugin</artifactId>
@@ -137,6 +138,7 @@
           <scalaVersion>${scala.version}</scalaVersion>
         </configuration>
       </plugin>
+
     </plugins>
   </reporting>
 </project>
