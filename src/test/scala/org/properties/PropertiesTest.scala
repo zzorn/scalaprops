@@ -5,10 +5,7 @@ import org.scalatest.junit.JUnitRunner
 import org.junit.runner.RunWith
 import java.lang.IllegalArgumentException
 
-/**
- * 
- */
-@RunWith(classOf[JUnitRunner])
+//@RunWith(classOf[JUnitRunner])
 class PropertiesTest extends FunSuite {
   
 
