@@ -1,8 +1,8 @@
-= Properties =
+= Scalaprops =
 
 == About ==
 
-Properties is a simple Scala library for properties oriented programminging.
+Scalaprops is a simple Scala library for properties oriented programminging.
 It provides listener, value translation, and validator support for properties.
 It also includes a Bean trait with factory methods for creating properties.
 
@@ -39,7 +39,7 @@ ball.color := "88ffaa"
 
 == Webpage & contact ==
 
-Web:   http://github.com/zzorn/properties
-Git:   git clone git://github.com/zzorn/properties.git
+Web:   http://github.com/zzorn/scalaprops
+Git:   git clone git://github.com/zzorn/scalaprops.git
 Email: zzorn at iki.fi
 
