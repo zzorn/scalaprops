@@ -20,6 +20,11 @@ trait Bean {
   }
 
   /**
+   * Shorthand version of property()
+   */
+  protected def p[T](initialValue: T): Property[T] = property(initialValue)
+
+  /**
    * Returns the properties that have been added to this Bean.
    */
   def properties: List[Property[_]] = _properties
