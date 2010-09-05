@@ -1,4 +1,4 @@
-package org.properties
+package org.scalaprops
 
 /**
  * A value of some type that can be modified.

@@ -1,4 +1,4 @@
-package org.properties
+package org.scalaprops
 
 import org.scalatest.FunSuite
 import java.lang.IllegalArgumentException

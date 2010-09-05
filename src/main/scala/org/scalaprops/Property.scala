@@ -1,4 +1,4 @@
-package org.properties
+package org.scalaprops
 
 /**
  * Property implementation with listener, validation, and translation support.

@@ -1,4 +1,4 @@
-package org.properties
+package org.scalaprops
 
 /**
  * Base trait for classes that contain properties.
