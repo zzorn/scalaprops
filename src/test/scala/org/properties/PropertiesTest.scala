@@ -1,22 +1,19 @@
 package org.properties
 
 import org.scalatest.FunSuite
-import org.scalatest.junit.JUnitRunner
-import org.junit.runner.RunWith
 import java.lang.IllegalArgumentException
 
-//@RunWith(classOf[JUnitRunner])
 class PropertiesTest extends FunSuite {
   
-
   test("properties") {
     var liveChangedCalled = false
     def liveChanged() = liveChangedCalled = true
 
     class Orc extends Bean {
-      val name      = stringField('name, "Igor") translate(n => "Mr. " + n)
-      val hitPoints = doubleField('hitPoints, 100) require(_ >= 0)
-      val alive     = boolField('alive, true) onChange liveChanged _
+      val name      = property("Igor") translate(n => "Mr. " + n)
+      val surname   = property("Orc") require(!_.isEmpty, "Surname should not be empty")
+      val hitPoints = property(100) require(_ >= 0)
+      val alive     = property(true) onChange liveChanged _
     }
 
 
@@ -35,6 +32,13 @@ class PropertiesTest extends FunSuite {
     try {
       orc.hitPoints := -1
       fail("-1 should not be allowed")
+    } catch {
+      case e: IllegalArgumentException => // Success
+    }
+
+    try {
+      orc.surname := ""
+      fail("empty string should not be allowed")
     } catch {
       case e: IllegalArgumentException => // Success
     }
