@@ -5,17 +5,18 @@ import java.lang.IllegalArgumentException
 
 class PropertiesTest extends FunSuite {
   
-  test("properties") {
+
+  class Orc extends Bean {
     var liveChangedCalled = false
     def liveChanged() = liveChangedCalled = true
 
-    class Orc extends Bean {
-      val name      = property("Igor") translate(n => "Mr. " + n)
-      val surname   = property("Orc") require(!_.isEmpty, "Surname should not be empty")
-      val hitPoints = property(100) require(_ >= 0)
-      val alive     = property(true) onChange liveChanged _
-    }
+    val name      = p('name, "Igor") translate(n => "Mr. " + n)
+    val surname   = p('surname, "Orc") require(!_.isEmpty, "Surname should not be empty")
+    val hitPoints = p('hitPoints, 100) require(_ >= 0)
+    val alive     = p('alive, true) onChange liveChanged _
+  }
 
+  test("properties") {
 
     val orc = new Orc()
 
@@ -27,7 +28,7 @@ class PropertiesTest extends FunSuite {
 
     orc.alive := false
 
-    assert(liveChangedCalled)
+    assert(orc.liveChangedCalled)
 
     try {
       orc.hitPoints := -1
@@ -42,6 +43,28 @@ class PropertiesTest extends FunSuite {
     } catch {
       case e: IllegalArgumentException => // Success
     }
+  }
+
+  test("accessing properties through names") {
+    val orc = new Orc()
+    orc('hitPoints) = 40
+    assert(orc[Int]('hitPoints) === 40)
+
+    try {
+      orc.set('knitting, true)
+      fail("should not allow setting non-added property")
+    } catch {
+      case e: IllegalArgumentException => // Success
+    }
+  }
+
+  test("Getting all properties") {
+    val orc = new Orc()
+    val props = orc.properties
+
+    assert(props.contains('hitPoints))
+    assert(props.contains('alive))
+    assert(!props.contains('knitting))
   }
 
 }

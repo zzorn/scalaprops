@@ -3,7 +3,7 @@ package org.scalaprops
 /**
  * Property implementation with listener, validation, and translation support.
  */
-class Property[T](initialValue: T) extends AbstractProperty[T] {
+class Property[T](val name: Symbol, initialValue: T) extends AbstractProperty[T] {
 
   type ChangeListener = Property[T] => Unit
   type Translator = T => T
@@ -65,7 +65,7 @@ class Property[T](initialValue: T) extends AbstractProperty[T] {
 
   private final def checkInvariant(validator: Validator, value: T) {
     val result = validator(value)
-    if (result != null) throw new IllegalArgumentException("Value '"+value+"' not allowed, " + result)
+    if (result != null) throw new IllegalArgumentException("Value '"+value+"' not allowed for property "+name.name+", " + result)
   }
 
 }

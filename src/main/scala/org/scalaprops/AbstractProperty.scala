@@ -5,6 +5,11 @@ package org.scalaprops
  */
 trait AbstractProperty[T] {
 
+  /**
+   * Name of property.
+   */
+  def name: Symbol
+
   def get: T
   def set(newValue: T)
 
