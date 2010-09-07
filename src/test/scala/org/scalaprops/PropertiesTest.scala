@@ -45,6 +45,12 @@ class PropertiesTest extends FunSuite {
     }
   }
 
+  test("Optional get") {
+    val orc = new Orc()
+    assert(orc.get('knitting) === None)
+    assert(orc.get('hitPoints) === Some(100))
+  }
+
   test("accessing properties through names") {
     val orc = new Orc()
     orc('hitPoints) = 40

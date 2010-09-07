@@ -9,7 +9,7 @@ class Property[T](val name: Symbol, initialValue: T) extends AbstractProperty[T]
   type Translator = T => T
   type Validator = T => String
 
-  private var value: T = initialValue
+  private var _value: T = initialValue
   private var validators: List[Validator] = Nil
   private var listeners: List[ChangeListener] = Nil
   private var translators: List[Translator] = Nil
@@ -45,19 +45,19 @@ class Property[T](val name: Symbol, initialValue: T) extends AbstractProperty[T]
   /**
    * Returns the current value of the property.
    */
-  def get: T = value
+  def get: T = _value
 
   /**
    * Sets the value of the property.  If there are any translators they are applied to the value,
    * then any verifiers are run on it. After the value is assigned any listeners are called.
    */
   def set(newValue: T) = {
-    if (value != newValue) {
+    if (_value != newValue) {
       var translatedVal = newValue
       translators foreach (t => translatedVal = t(translatedVal))
       validators foreach ( checkInvariant(_, translatedVal) )
 
-      value = translatedVal
+      _value = translatedVal
 
       listeners foreach ( _(this) )
     }
