@@ -5,17 +5,18 @@ import java.lang.IllegalArgumentException
 
 class PropertiesTest extends FunSuite {
   
-  test("properties") {
+
+  class Orc extends Bean {
     var liveChangedCalled = false
     def liveChanged() = liveChangedCalled = true
 
-    class Orc extends Bean {
-      val name      = property("Igor") translate(n => "Mr. " + n)
-      val surname   = property("Orc") require(!_.isEmpty, "Surname should not be empty")
-      val hitPoints = property(100) require(_ >= 0)
-      val alive     = property(true) onChange liveChanged _
-    }
+    val name      = p('name, "Igor") translate(n => "Mr. " + n)
+    val surname   = p('surname, "Orc") require(!_.isEmpty, "Surname should not be empty")
+    val hitPoints = p('hitPoints, 100) require(_ >= 0)
+    val alive     = p('alive, true) onChange liveChanged _
+  }
 
+  test("properties") {
 
     val orc = new Orc()
 
@@ -27,7 +28,7 @@ class PropertiesTest extends FunSuite {
 
     orc.alive := false
 
-    assert(liveChangedCalled)
+    assert(orc.liveChangedCalled)
 
     try {
       orc.hitPoints := -1
@@ -44,8 +45,80 @@ class PropertiesTest extends FunSuite {
     }
   }
 
-  test("Bound properties") {
 
+  test("Optional get") {
+    val orc = new Orc()
+    assert(orc.get('knitting) === None)
+    assert(orc.get('hitPoints) === Some(100))
+  }
+
+  test("accessing properties through names") {
+    val orc = new Orc()
+    orc('hitPoints) = 40
+    assert(orc[Int]('hitPoints) === 40)
+
+    try {
+      orc.set('knitting, true)
+      fail("should not allow setting non-added property")
+    } catch {
+      case e: IllegalArgumentException => // Success
+    }
+  }
+
+  test("Getting all properties") {
+    val orc = new Orc()
+    val props = orc.properties
+
+    assert(props.contains('hitPoints))
+    assert(props.contains('alive))
+    assert(!props.contains('knitting))
+  }
+
+  test("Bound properties, automatic update") {
+    val igor = new Orc()
+    val igorsShadow = new Orc()
+
+    igorsShadow.hitPoints.bind(igor.hitPoints)
+
+    igor.hitPoints := 50
+    assert(igorsShadow.hitPoints() === 50)
+  }
+
+  test("Bound properties, manual update") {
+    val igor = new Orc()
+    val igorsShadow = new Orc()
+
+    igorsShadow.hitPoints.bind(igor.hitPoints, automaticUpdate = false)
+
+    igor.hitPoints := 50
+    assert(igorsShadow.hitPoints() === 100)
+
+    igorsShadow.updateBoundValues()
+    assert(igorsShadow.hitPoints() === 50)
+  }
+
+  test("Bound properties, translate") {
+    val igor = new Orc()
+    val igorsShadow = new Orc()
+
+    igorsShadow.hitPoints.bind(igor.hitPoints, hp => hp - 10)
+
+    igor.hitPoints := 50
+    assert(igorsShadow.hitPoints() === 40)
+  }
+
+  test("Bound properties, unbind") {
+    val igor = new Orc()
+    val igorsShadow = new Orc()
+
+    igorsShadow.hitPoints.bind(igor.hitPoints)
+
+    igor.hitPoints := 50
+    assert(igorsShadow.hitPoints() === 50)
+
+    igorsShadow.hitPoints.unbind()
+    igor.hitPoints := 30
+    assert(igorsShadow.hitPoints() === 50)
   }
 
 }

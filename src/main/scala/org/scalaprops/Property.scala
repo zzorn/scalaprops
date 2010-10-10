@@ -3,13 +3,13 @@ package org.scalaprops
 /**
  * Property implementation with listener, validation, and translation support.
  */
-class Property[T](initialValue: T) extends AbstractProperty[T] {
+class Property[T](val name: Symbol, initialValue: T) extends AbstractProperty[T] {
 
   type ChangeListener = Property[T] => Unit
   type Translator = T => T
   type Validator = T => String
 
-  private var value: T = initialValue
+  private var _value: T = initialValue
   private var validators: List[Validator] = Nil
   private var listeners: List[ChangeListener] = Nil
   private var translators: List[Translator] = Nil
@@ -60,7 +60,7 @@ class Property[T](initialValue: T) extends AbstractProperty[T] {
    * If automaticUpdate is true the value of this property is immediately updated if the other property changes.
    * If not, the value of this property is only updated when updateFromBound is called.
    */
-  def bind(other: Property[T], automaticUpdate: Boolean = true, translator: T => T = t => t): Property[T] = {
+  def bind(other: Property[T], translator: T => T = t => t, automaticUpdate: Boolean = true): Property[T] = {
     if (_boundProperty != null) unbind()
 
     _boundProperty = other
@@ -98,19 +98,19 @@ class Property[T](initialValue: T) extends AbstractProperty[T] {
   /**
    * Returns the current value of the property.
    */
-  def get: T = value
+  def get: T = _value
 
   /**
    * Sets the value of the property.  If there are any translators they are applied to the value,
    * then any verifiers are run on it. After the value is assigned any listeners are called.
    */
   def set(newValue: T) = {
-    if (value != newValue) {
+    if (_value != newValue) {
       var translatedVal = newValue
       translators foreach (t => translatedVal = t(translatedVal))
       validators foreach ( checkInvariant(_, translatedVal) )
 
-      value = translatedVal
+      _value = translatedVal
 
       listeners foreach ( _(this) )
     }
@@ -118,7 +118,7 @@ class Property[T](initialValue: T) extends AbstractProperty[T] {
 
   private final def checkInvariant(validator: Validator, value: T) {
     val result = validator(value)
-    if (result != null) throw new IllegalArgumentException("Value '"+value+"' not allowed, " + result)
+    if (result != null) throw new IllegalArgumentException("Value '"+value+"' not allowed for property "+name.name+", " + result)
   }
 
   private def bindingListener(p: Property[T]) = set(p.get)
