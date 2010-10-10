@@ -44,4 +44,8 @@ class PropertiesTest extends FunSuite {
     }
   }
 
+  test("Bound properties") {
+
+  }
+
 }
