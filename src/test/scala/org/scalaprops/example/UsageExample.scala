@@ -1,20 +1,12 @@
-= Scalaprops =
+package org.scalaprops.example
 
-== About ==
+import org.scalaprops._
 
-Scalaprops is a simple Scala library for properties oriented programminging.
-It provides listener, value translation, and validator support for properties.
-It also includes a Bean trait with factory methods for creating properties.
-
-
-== License ==
-
-New BSD license.
-
-
-== Usage example ==
-
-    import org.scalaprops._
+/**
+ * Usage example from readme.txt
+ */
+object UsageExample {
+  def main(args: Array[String]) {
 
     // Extend org.scalaprops.Bean to get property(...) utility functions and some introspection support.
     class Ball extends Bean {
@@ -43,10 +35,6 @@ New BSD license.
     // List names and values of properties
     ball.properties foreach { nameAndProperty => println(nameAndProperty._1.name + " = " + nameAndProperty._2.get) }
 
-
-== Webpage & contact ==
-
-Web:   http://github.com/zzorn/scalaprops
-Git:   git clone git://github.com/zzorn/scalaprops.git
-Email: zzorn at iki.fi
-
+  }
+  
+}

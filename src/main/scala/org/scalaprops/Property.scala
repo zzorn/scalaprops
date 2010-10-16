@@ -14,6 +14,9 @@ class Property[T](val name: Symbol, initialValue: T) extends AbstractProperty[T]
   private var listeners: List[ChangeListener] = Nil
   private var translators: List[Translator] = Nil
 
+  private var _boundProperty: Property[T] = null
+  private var _boundListener: Property[T] => Unit = null
+
   /**
    * Add a function that is used to process the value assigned to the property before it is assigned.
    * The result of the function is used as the value for the property.
@@ -39,8 +42,58 @@ class Property[T](val name: Symbol, initialValue: T) extends AbstractProperty[T]
 
   /**
    * Adds a listener function without parameters that is called when the property changes.
+   * This type of listener can not be removed with removeListener
    */
   def onChange(listener: () => Unit): Property[T] = onChange( p => listener() )
+
+  /**
+   * Removes the specified changeListener.
+   */
+  def removeListener(listener: ChangeListener): Property[T] = { listeners = listeners.filterNot(_ == listener); this }
+
+  /**
+   * Bind this property to listen to the specified other property and immediately
+   * translate and copy its value when it is changed.
+   *
+   * First unbinds from any previous bound property.
+   * 
+   * If automaticUpdate is true the value of this property is immediately updated if the other property changes.
+   * If not, the value of this property is only updated when updateFromBound is called.
+   */
+  def bind(other: Property[T], translator: T => T = t => t, automaticUpdate: Boolean = true): Property[T] = {
+    if (_boundProperty != null) unbind()
+
+    _boundProperty = other
+    _boundListener = (p: Property[T]) => set(translator(p.get))
+    _boundListener(_boundProperty)
+    if (automaticUpdate) _boundProperty.onChange(_boundListener)
+    this
+  }
+
+  /**
+   * Updates the value of this property with that of the property it is bound to.
+   * If this property is not bound to any other property it is not changed.
+   * Used when bindings are updated manually.
+   */
+  def updateFromBound() {
+    if (_boundProperty != null) {
+      _boundListener(_boundProperty)
+    }
+  }
+
+  /**
+   * Unbind this property, stopping any automatic updates of it.
+   */
+  def unbind() = {
+    if (_boundProperty != null) _boundProperty.removeListener(_boundListener)
+    _boundProperty = null
+    _boundListener = null
+  }
+
+  /**
+   * The property that this property is bound to, or null if none.
+   */
+  def boundProperty: Property[T] = _boundProperty
 
   /**
    * Returns the current value of the property.
@@ -67,5 +120,7 @@ class Property[T](val name: Symbol, initialValue: T) extends AbstractProperty[T]
     val result = validator(value)
     if (result != null) throw new IllegalArgumentException("Value '"+value+"' not allowed for property "+name.name+", " + result)
   }
+
+  private def bindingListener(p: Property[T]) = set(p.get)
 
 }

@@ -100,6 +100,14 @@ trait Bean {
    */
   def addFromMap(values: Map[Symbol, AnyRef]) = values foreach (e => addProperty(e._1, e._2))
 
+  /**
+   * Calls updateFromBound for all properties in this bean, updating the property values
+   * from their bound values.  Only needs to be called if automatic updates in bindings are not used.
+   */
+  def updateBoundValues() {
+    _properties.values foreach (p => p.updateFromBound())
+  }
+
   override def toString: String = {
     val sb = new StringBuilder()
     sb.append("{\n")

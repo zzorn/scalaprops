@@ -45,6 +45,7 @@ class PropertiesTest extends FunSuite {
     }
   }
 
+
   test("Optional get") {
     val orc = new Orc()
     assert(orc.get('knitting) === None)
@@ -71,6 +72,53 @@ class PropertiesTest extends FunSuite {
     assert(props.contains('hitPoints))
     assert(props.contains('alive))
     assert(!props.contains('knitting))
+  }
+
+  test("Bound properties, automatic update") {
+    val igor = new Orc()
+    val igorsShadow = new Orc()
+
+    igorsShadow.hitPoints.bind(igor.hitPoints)
+
+    igor.hitPoints := 50
+    assert(igorsShadow.hitPoints() === 50)
+  }
+
+  test("Bound properties, manual update") {
+    val igor = new Orc()
+    val igorsShadow = new Orc()
+
+    igorsShadow.hitPoints.bind(igor.hitPoints, automaticUpdate = false)
+
+    igor.hitPoints := 50
+    assert(igorsShadow.hitPoints() === 100)
+
+    igorsShadow.updateBoundValues()
+    assert(igorsShadow.hitPoints() === 50)
+  }
+
+  test("Bound properties, translate") {
+    val igor = new Orc()
+    val igorsShadow = new Orc()
+
+    igorsShadow.hitPoints.bind(igor.hitPoints, hp => hp - 10)
+
+    igor.hitPoints := 50
+    assert(igorsShadow.hitPoints() === 40)
+  }
+
+  test("Bound properties, unbind") {
+    val igor = new Orc()
+    val igorsShadow = new Orc()
+
+    igorsShadow.hitPoints.bind(igor.hitPoints)
+
+    igor.hitPoints := 50
+    assert(igorsShadow.hitPoints() === 50)
+
+    igorsShadow.hitPoints.unbind()
+    igor.hitPoints := 30
+    assert(igorsShadow.hitPoints() === 50)
   }
 
 }
