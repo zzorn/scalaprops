@@ -48,7 +48,7 @@ trait Bean {
    * Get value of property, or the specified default value if not found.
    */
   def get[T](propertyName: Symbol, defaultValue: T): T = get(propertyName).getOrElse(defaultValue)
-  
+
   /**
    * Set value for property, throws exception if property doesn't exist.
    */
@@ -66,6 +66,11 @@ trait Bean {
    * Returns the properties that have been added to this Bean.
    */
   def properties: Map[Symbol, Property[_]] = _properties
+
+  /**
+   * Adds or updates the value of the property.
+   */
+  def put[T](name: Symbol, value: T) = addProperty(name, value)
 
   /**
    * Adds a property to the bean.
