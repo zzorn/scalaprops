@@ -16,9 +16,7 @@ trait Bean {
    * and so that it can be assigned to a val for easy access.
    */
   protected def property[T](name: Symbol, initialValue: T)(implicit m: Manifest[T]): Property[T] = {
-orn@zz-laptop:~/downloads$ >
-bash: synorn@zz-laptop:~/downloads$ >
-bash: syn    val property = new Property[T](name, initialValue)
+    val property = new Property[T](name, initialValue)
     addProperty(property)
     property
   }
