@@ -1,11 +1,11 @@
 package org.scalaprops.utils
 
 /**
- * 
+ * Class related utilities.
  */
-
 object ClassUtils {
   def nativeTypeToWrappedType(kind: Class[_]): Class[_] = {
+    // TODO: Is there some way to do this in the scala libraries?  Is this missing something?  E.g. arrays?
     if (kind == classOf[Int]) classOf[java.lang.Integer]
     else if (kind == classOf[Short]) classOf[java.lang.Short]
     else if (kind == classOf[Long]) classOf[java.lang.Long]

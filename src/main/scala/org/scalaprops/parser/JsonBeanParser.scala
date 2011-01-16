@@ -11,8 +11,6 @@ import scala.util.parsing.combinator.JavaTokenParsers
 class JsonBeanParser extends JavaTokenParsers with BeanParser {
 
 
-  def parse(reader: Reader) = null
-
   def parse(reader: Reader, sourceName: String): Bean = {
     parseAll(obj, reader) match {
       case s: Success[Map[Symbol, AnyRef]] =>  createBean(s.result)
@@ -25,23 +23,33 @@ class JsonBeanParser extends JavaTokenParsers with BeanParser {
   private def arr: Parser[List[AnyRef]] = "["~> repsep(value, opt(",")) <~"]"
 
   private def fieldName: Parser[Symbol] = (
-          stringLiteral  ^^ (x => Symbol(x))
+          stringLiteral  ^^ (x => Symbol(stripQuotes(x)))
           | ident ^^ (x => Symbol(x))
           )
 
   private def member: Parser[(Symbol, AnyRef)] =
           fieldName ~":"~value ^^ { case name~":"~value => (name, value) }
 
+
   private def value: Parser[AnyRef] = (
           obj
           | arr
-          | stringLiteral
-          | floatingPointNumber
+          | stringLiteral ^^ (x => stripQuotes(x))
+          | floatingPointNumber ^^ (x => stringToNumber(x))
           | "null" ^^ (x => null)
-          | "true"
-          | "false"
+          | "true" ^^ (x => java.lang.Boolean.TRUE)
+          | "false" ^^ (x => java.lang.Boolean.FALSE)
           | ident
           )
 
+  private def stringToNumber(s: String): AnyRef = {
+    if (s.contains(".") ||
+        s.contains("e") ||
+        s.contains("E")) new java.lang.Double(s)
+    else if (s.length <= 9) new java.lang.Integer(s)
+    else new java.lang.Long(s)
+  }
+
+  private def stripQuotes(x: String): String = x.substring(1, x.length - 1)
 
 }

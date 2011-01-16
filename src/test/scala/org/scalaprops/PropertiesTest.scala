@@ -2,6 +2,7 @@ package org.scalaprops
 
 import org.scalatest.FunSuite
 import java.lang.IllegalArgumentException
+import parser.{BeanParser, JsonBeanParser}
 
 class PropertiesTest extends FunSuite {
   
@@ -10,10 +11,11 @@ class PropertiesTest extends FunSuite {
     var liveChangedCalled = false
     def liveChanged() = liveChangedCalled = true
 
-    val name      = p('name, "Igor") translate(n => "Mr. " + n)
-    val surname   = p('surname, "Orc") require(!_.isEmpty, "Surname should not be empty")
-    val hitPoints = p('hitPoints, 100) require(_ >= 0)
-    val alive     = p('alive, true) onChange liveChanged _
+    val name       = p('name, "Igor") translate(n => "Mr. " + n)
+    val surname    = p('surname, "Orc") require(!_.isEmpty, "Surname should not be empty")
+    val hitPoints  = p('hitPoints, 100) require(_ >= 0)
+    val alive      = p('alive, true) onChange liveChanged _
+    val occupation = p[Symbol]('occupation, null)
   }
 
   test("properties") {
@@ -119,6 +121,32 @@ class PropertiesTest extends FunSuite {
     igorsShadow.hitPoints.unbind()
     igor.hitPoints := 30
     assert(igorsShadow.hitPoints() === 50)
+  }
+
+
+  test("Parse JSON like syntax") {
+
+    val text = "{" +
+               "  beanType: Orc\n" +
+               "  smell: 0.56" +
+               "  \"hitPoints\": 98" +
+               "  name : \"Olaf\"\n" +
+               "  occupation: \"Warrior\"\n" +
+               "  alive:false " +
+               "  \"badges\": [" +
+               "     \"Elf Bashing\", \"Pig Farming\", \"Nose Picking\"" +
+               "   ]" +
+               "}"
+
+    val parser: BeanParser = new JsonBeanParser()
+    parser.registerBeanType('Orc, () => new Orc())
+    val element: Bean = parser.parse(text, "test source")
+
+    val orc: Orc = element.asInstanceOf[Orc]
+    assert(orc.name() === "Mr. Olaf")
+    assert(orc.hitPoints() === 98)
+    assert(orc.surname() === "Orc")
+    assert(orc.occupation() === 'Warrior)
   }
 
 }

@@ -1,8 +1,9 @@
 package org.scalaprops.parser
 
-import java.io.Reader
 import org.scalaprops.{PropertyBean, Bean}
 import scala.reflect.Manifest
+import java.io.{StringReader, Reader}
+import tools.nsc.io.File
 
 /**
  * Something that can parse Property Beans.
@@ -49,14 +50,20 @@ trait BeanParser {
   var typeFieldName = 'beanType
 
   /** Parses the input stream and returns a list of the beans found in it */
-  def parse(reader: Reader): List[Bean]
+  def parse(reader: Reader, sourceName: String): Bean
+
+  /** Parses the input text and returns a list of the beans found in it */
+  def parse(text: String, sourceName: String): Bean = parse(new StringReader(text), sourceName)
+
+  /** Parses the input file and returns a list of the beans found in it */
+  def parse(file: File): Bean = parse(file.reader, file.path)
 
   protected def deserialize(value: String, target: Class[_]): AnyRef = {
     deserializers.get(target).map(ds => ds(value)).getOrElse(value)
   }
 
   protected def createBean(propertyValues: Map[Symbol, AnyRef]): Bean = {
-    val bean: Bean = if (propertyValues.contains(typeFieldName)) createBeanInstance(Symbol(propertyValues(typeFieldName).toString))
+    val bean: Bean = if (propertyValues.contains(typeFieldName)) createBeanInstance(asSymbol(propertyValues(typeFieldName)))
                      else defaultBeanConstructor()
     propertyValues foreach { e =>
       val field: Symbol = e._1
@@ -64,7 +71,8 @@ trait BeanParser {
       if (field != typeFieldName) {
         if (bean.contains(field)) {
           // Do any deserialization if needed:
-          value = deserialize(value.toString, field.getClass)
+          value = deserialize(value.toString, bean.properties(field).kind.erasure)
+
           bean.set(field, value)
         }
         else {
@@ -83,7 +91,10 @@ trait BeanParser {
     var bean: Bean = null
     beanCreators exists { bc =>
       bc(typeName) match  {
-        case None => false
+        case None =>
+          // TODO: Logging?
+          println("No bean creator found for bean type " + typeName + ", using default bean type.")
+          false
         case Some(b) =>
           bean = b
           true
@@ -93,5 +104,11 @@ trait BeanParser {
     if (bean == null) bean = defaultBeanConstructor()
     bean
   }
+
+  private def asSymbol(value: AnyRef): Symbol = {
+    if (value.isInstanceOf[Symbol]) value.asInstanceOf[Symbol]
+    else Symbol(value.toString)
+  }
+
 
 }
