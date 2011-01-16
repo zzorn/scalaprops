@@ -1,5 +1,7 @@
 package org.scalaprops
 
+import utils.ClassUtils
+
 /**
  * Property implementation with listener, validation, and translation support.
  */
@@ -9,7 +11,12 @@ class Property[T](val name: Symbol, initialValue: T)(implicit val kind: Manifest
   type Translator = T => T
   type Validator = T => String
 
-  private val typeValidator: Validator = {value: T => if (value == null || kind.erasure.isInstance(value)) null else "Value is not of the correct type, expected "+kind.erasure.getName+", but got "+value.asInstanceOf[AnyRef].getClass().getName+"."}
+  private val typeValidator: Validator = {value: T =>
+    if (value == null ||
+        kind.erasure.isInstance(value) ||
+        ClassUtils.nativeTypeToWrappedType(kind.erasure).isInstance(value)) null
+    else "Value is not of the correct type, expected "+kind.erasure.getName+", but got "+value.asInstanceOf[AnyRef].getClass().getName+"."
+  }
 
   private var _value: T = initialValue
   private var validators: List[Validator] = List( typeValidator )

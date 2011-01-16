@@ -33,9 +33,9 @@ trait Bean {
 
   def update[T](propertyName: Symbol, value: T) = set(propertyName, value)
 
-  /**ثثث
+  /**
    * True if a property with the specified name is present.
-ث   */
+   */
   def contains(name: Symbol): Boolean = properties.contains(name)
 
   /**
