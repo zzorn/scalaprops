@@ -3,14 +3,16 @@ package org.scalaprops
 /**
  * Property implementation with listener, validation, and translation support.
  */
-class Property[T](val name: Symbol, initialValue: T) extends AbstractProperty[T] {
+class Property[T](val name: Symbol, initialValue: T)(implicit val kind: Manifest[T]) extends AbstractProperty[T] {
 
   type ChangeListener = Property[T] => Unit
   type Translator = T => T
   type Validator = T => String
 
+  private val typeValidator: Validator = {value: T => if (value == null || kind.erasure.isInstance(value)) null else "Value is not of the correct type, expected "+kind.erasure.getName+", but got "+value.asInstanceOf[AnyRef].getClass().getName+"."}
+
   private var _value: T = initialValue
-  private var validators: List[Validator] = Nil
+  private var validators: List[Validator] = List( typeValidator )
   private var listeners: List[ChangeListener] = Nil
   private var translators: List[Translator] = Nil
 
@@ -27,13 +29,19 @@ class Property[T](val name: Symbol, initialValue: T) extends AbstractProperty[T]
    * Adds a validator that checks a property value about to be assigned, and returns an error message if it is incorrect,
    * and null if it is ok.  Validators are checked after all translators have been applied to the new value.
    */
-  def validate(validator: Validator): Property[T] =  { validators = validator :: validators; this }
+  def requireValidator(validator: Validator): Property[T] =  { validators = validator :: validators; this }
 
   /**
    * Adds a validator that checks a property value about to be assigned, and returns the specified error message if it is incorrect,
    * and null if it is ok.  Validators are checked after all translators have been applied to the new value.
    */
-  def require(invariant: T => Boolean, message: String = "Incorrect value"): Property[T] = validate( (t:T) => if (!invariant(t)) message else null )
+  def require(invariant: T => Boolean, message: String = "Incorrect value"): Property[T] = requireValidator( (t:T) => if (!invariant(t)) message else null )
+
+  /**
+   * Adds a validator that checks that a property value about to be assigned is not null.
+   * Validators are checked after all translators have been applied to the new value.
+   */
+  def requireNotNull: Property[T] = requireValidator( (t:T) => if (t == null) "Null not allowed" else null )
 
   /**
    * Adds a listener that is called when the property changes.  The listener takes the property as a parameter.
