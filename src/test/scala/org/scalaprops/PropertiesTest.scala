@@ -147,6 +147,7 @@ class PropertiesTest extends FunSuite {
     assert(orc.hitPoints() === 98)
     assert(orc.surname() === "Orc")
     assert(orc.occupation() === 'Warrior)
+    assert(orc.get('badges, Nil).size === 3)
   }
 
 }
