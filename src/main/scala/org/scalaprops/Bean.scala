@@ -7,8 +7,11 @@ package org.scalaprops
 trait Bean {
 
   private var _properties: Map[Symbol, Property[_]] = Map()
+  private var _beanName: Symbol = Symbol(getClass.getSimpleName)
 
-  def beanName: String = getClass.getSimpleName
+  def beanName: Symbol = _beanName
+
+  def setBeanName(name: Symbol) = _beanName = name
 
   /**
    * Adds a property to the bean and returns the property,

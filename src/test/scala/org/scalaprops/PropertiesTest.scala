@@ -139,7 +139,7 @@ class PropertiesTest extends FunSuite {
                "}"
 
     val parser: BeanParser = new JsonBeanParser()
-    parser.registerBeanType('Orc, () => new Orc())
+    parser.beanFactory.registerBeanType('Orc, () => new Orc())
     val element: Bean = parser.parse(text, "test source")
 
     val orc: Orc = element.asInstanceOf[Orc]
