@@ -1,0 +1,22 @@
+== Changelog ==
+
+v0.1.6
+Import and export of Beans from JSON style text format.
+
+v0.1.5
+Added property binding system, with support for automatic and manual updates, and value translation on update.
+
+v0.1.4
+Fixed bug in Bean.get. Added varios convenience methods.
+
+v0.1.3
+Added names to properties, and methods to the bean to access properties by name.
+
+v0.1.2
+Renamed to scalaprops.
+
+v0.1.1 
+Initial properties functionality, with listeners, translators, validators, and a Bean trait with a property factory method.
+
+
+
