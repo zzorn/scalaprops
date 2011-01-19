@@ -4,7 +4,8 @@
 
 Scalaprops is a simple Scala library for properties oriented programminging.
 It provides listener, value translation, and validator support for properties.
-It also includes a Bean trait with factory methods for creating properties.
+It also includes a Bean trait with factory methods for creating properties,
+and utility classes for saving and loading beans to/from streams.
 
 
 == License ==
@@ -47,6 +48,5 @@ New BSD license.
 == Webpage & contact ==
 
 Web:   http://github.com/zzorn/scalaprops
-Git:   git clone git://github.com/zzorn/scalaprops.git
 Email: zzorn at iki.fi
 
