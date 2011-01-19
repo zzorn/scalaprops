@@ -48,5 +48,6 @@ New BSD license.
 == Webpage & contact ==
 
 Web:   http://github.com/zzorn/scalaprops
+IRC:   zzorn on irc.freenode.net
 Email: zzorn at iki.fi
 
