@@ -5,6 +5,7 @@ import java.io.{StringReader, Reader}
 import tools.nsc.io.File
 import org.scalaprops.serialization.{Serializers, StandardSerializers}
 import org.scalaprops.{BeanFactory, PropertyBean, Bean}
+import org.scalaprops.utils.ClassUtils
 
 /**
  * Something that can parse Property Beans.
@@ -41,7 +42,8 @@ trait BeanParser {
       if (field != typePropertyName) {
         if (bean.contains(field)) {
           // Do any deserialization if needed:
-          value = serializers.deserialize(bean.properties(field).kind.erasure, value.toString)
+          val kind = bean.properties(field).kind.erasure
+          value = serializers.deserialize(kind, value.toString)
 
           bean.set(field, value)
         }

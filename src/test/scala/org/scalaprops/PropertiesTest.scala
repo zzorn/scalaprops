@@ -1,5 +1,6 @@
 package org.scalaprops
 
+import exporter.{JsonBeanExporter, BeanExporter}
 import org.scalatest.FunSuite
 import java.lang.IllegalArgumentException
 import parser.{BeanParser, JsonBeanParser}
@@ -148,6 +149,41 @@ class PropertiesTest extends FunSuite {
     assert(orc.surname() === "Orc")
     assert(orc.occupation() === 'Warrior)
     assert(orc.get('badges, Nil).size === 3)
+  }
+
+  test("Generate JSON like syntax") {
+    val bean = new Orc()
+    bean.name := "Igor"
+    bean.addProperty('badges, List("Funny Hat", "Wooden Stick"))
+    bean.addProperty(Symbol("Imaginary Friend"), new Orc())
+
+    val exporter: BeanExporter = new JsonBeanExporter()
+    val exported = exporter.exportAsString(bean)
+
+    val expected =
+"""{
+  "beanType": "Orc",
+  "name": "Igor",
+  "surname": "Orc",
+  "hitPoints": 100,
+  "alive": true,
+  "occupation": null,
+  "badges": [
+    "Funny Hat",
+    "Wooden Stick"
+  ],
+  "Imaginary Friend": {
+    "beanType": "Orc",
+    "name": "Igor",
+    "surname": "Orc",
+    "hitPoints": 100,
+    "alive": true,
+    "occupation": null
+  }
+}
+"""
+
+    assert(exported === expected)
   }
 
 }

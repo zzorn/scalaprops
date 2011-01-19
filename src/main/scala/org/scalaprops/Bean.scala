@@ -1,12 +1,14 @@
 package org.scalaprops
 
+import collection.immutable.ListMap
+
 /**
  * Base trait for classes that contain properties.
  * Provides factory method for creating properties, and a query function for returning added properties.
  */
 trait Bean {
 
-  private var _properties: Map[Symbol, Property[_]] = Map()
+  private var _properties: Map[Symbol, Property[_]] = ListMap()
   private var _beanName: Symbol = Symbol(getClass.getSimpleName)
 
   def beanName: Symbol = _beanName

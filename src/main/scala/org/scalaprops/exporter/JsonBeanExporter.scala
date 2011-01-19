@@ -10,20 +10,23 @@ class JsonBeanExporter extends BeanExporter {
 
   def export(bean: Bean, writer: Writer) {
     writeBean(0, bean, writer)
+    writer.append("\n")
   }
 
   private def writeBean(indent: Int, bean: Bean, writer: Writer) {
 
     def writeBeanProperty(name: Symbol, value: AnyRef, kind: Manifest[_]) {
       writer.append(spaces(indent + 1)).append("\"").append(name.name).append("\"").append(": ")
-      writeValue(indent + 2, writer, value, kind)
+      writeValue(indent + 1, writer, value, kind)
     }
 
-    // Bena start
-    writer.append(spaces(indent)).append("{").append("\n")
+    // Bean start
+    writer.append("{\n")
 
     // Bean type name
     writeBeanProperty(typePropertyName, bean.beanName.name, null)
+    if (bean.properties.size > 0) writer.append(",")
+    writer.append("\n")
 
     // Bean properties
     foreachWithSeparator(bean.properties.values, () => writer.append(",\n")){ e: Property[_] =>
@@ -31,16 +34,14 @@ class JsonBeanExporter extends BeanExporter {
     }
 
     // Bean end
-    writer.append(spaces(indent)).append("}\n")
+    writer.append("\n").append(spaces(indent)).append("}")
   }
 
   private def writeValue(indent: Int, writer: Writer, value: AnyRef, kind: Manifest[_]) {
     if (value == null) writer.append("null")
     else if (value.isInstanceOf[Bean]) {
       // Check if it is a bean
-      writer.append("\n")
       writeBean(indent, value.asInstanceOf[Bean], writer)
-      writer.append("\n")
     }
     else if (value.isInstanceOf[List[_]]) {
       // Get list element type
@@ -48,14 +49,13 @@ class JsonBeanExporter extends BeanExporter {
       val elementType: Manifest[_] = if (kind == null) null else (kind.typeArguments.head)
 
       // Check if it is a list
-      writer.append("\n")
-      writer.append("[")
+      writer.append("[\n")
       foreachWithSeparator(value.asInstanceOf[List[_]], () => writer.append(",\n")){ e =>
+        writer.append(spaces(indent + 1))
         writeValue(indent + 1, writer, e.asInstanceOf[AnyRef], elementType)
       }
       writer.append("\n")
-      writer.append("]")
-      writer.append("\n")
+      writer.append(spaces(indent)).append("]")
     }
     else {
       // Use manifest type if available, otherwise get type from object
@@ -63,7 +63,6 @@ class JsonBeanExporter extends BeanExporter {
 
       // Other type, try to serialize it if possible
       writer.append(serializers.serialize(valueType, value))
-      writer.append("\n")
     }
   }
 
@@ -83,7 +82,7 @@ class JsonBeanExporter extends BeanExporter {
     iterable.foreach({e =>
       handler(e)
       i += 1
-      if (i == num) separator()
+      if (i < num) separator()
     })
   }
 

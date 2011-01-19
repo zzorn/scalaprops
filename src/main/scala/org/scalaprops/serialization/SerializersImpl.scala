@@ -1,11 +1,14 @@
 package org.scalaprops.serialization
 
+import org.scalaprops.utils.ClassUtils
+
 class SerializersImpl extends Serializers {
 
   private var _serializers: Map[Class[_], ValueSerializer] = Map()
 
   def registerSerializer[T <: AnyRef](serialize: T => String, deserialize: String  => T)(implicit kind: Manifest[T]) {
-    _serializers += (kind.erasure -> new ValueSerializer(kind.erasure, serialize.asInstanceOf[AnyRef => String], deserialize))
+    val wrappedType = ClassUtils.nativeTypeToWrappedType(kind.erasure)
+    _serializers += (wrappedType -> new ValueSerializer(wrappedType, serialize.asInstanceOf[AnyRef => String], deserialize))
   }
 
   def serializers: Map[Class[_], ValueSerializer] = _serializers
