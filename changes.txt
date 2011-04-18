@@ -1,5 +1,11 @@
 == Changelog ==
 
+v0.1.7
+Some API changes to listeners, translators, and validators, to simplify their usage.
+The onChange, translate, and require methods no longer use type-aliases for their parameter types, simplifying their usage.  
+For convenience, PropertyListener, Translator, and Validator traits were defined.
+Also added ability to remove listeners, translators, and validators.
+
 v0.1.6
 Import and export of Beans from JSON style text format.
 

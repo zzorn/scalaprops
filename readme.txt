@@ -21,8 +21,8 @@ New BSD license.
     class Ball extends Bean {
 
       val name     = property('name, "beachball")
-      val x        = property('x, 0.0) onChange redraw _
-      val y        = property('y, 0.0) onChange redraw _
+      val x        = property('x, 0.0) onChange redraw
+      val y        = property('y, 0.0) onChange redraw
       val color    = property('color, "ff8800") require(_.size == 6)
       val radius   = property('r, 10) translate(v => if (v < 1) 1 else v)
       val diameter = property('diam, 0) bind(radius, r => r * 2)
