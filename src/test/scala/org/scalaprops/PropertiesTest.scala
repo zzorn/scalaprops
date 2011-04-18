@@ -1,21 +1,22 @@
 package org.scalaprops
 
 import exporter.{JsonBeanExporter, BeanExporter}
-import org.scalatest.FunSuite
 import java.lang.IllegalArgumentException
 import parser.{BeanParser, JsonBeanParser}
+import org.scalatest.FunSuite
 
 class PropertiesTest extends FunSuite {
-  
+
 
   class Orc extends Bean {
     var liveChangedCalled = false
-    def liveChanged() = liveChangedCalled = true
+    def liveChanged() { liveChangedCalled = true }
+    var listenerCalledWith: (Int, Int) = (0,0)
 
     val name       = p('name, "Igor") translate(n => "Mr. " + n)
     val surname    = p('surname, "Orc") require(!_.isEmpty, "Surname should not be empty")
-    val hitPoints  = p('hitPoints, 100) require(_ >= 0)
-    val alive      = p('alive, true) onChange liveChanged _
+    val hitPoints  = p('hitPoints, 100) require(_ >= 0) onValueChange{ (o: Int, n: Int) =>  listenerCalledWith = (o,n) }
+    val alive      = p('alive, true) onChange liveChanged
     val occupation = p[Symbol]('occupation, null)
   }
 
@@ -48,6 +49,13 @@ class PropertiesTest extends FunSuite {
     }
   }
 
+  test("Listener") {
+    val orc = new Orc()
+    orc.hitPoints := 40
+    assert(orc.listenerCalledWith === (100, 40), "Listener should be called with correct values")
+    orc.hitPoints := 20
+    assert(orc.listenerCalledWith === (40, 20), "Listener should be called with correct values")
+  }
 
   test("Optional get") {
     val orc = new Orc()

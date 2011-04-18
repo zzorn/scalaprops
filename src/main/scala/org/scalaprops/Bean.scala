@@ -13,7 +13,7 @@ trait Bean {
 
   def beanName: Symbol = _beanName
 
-  def setBeanName(name: Symbol) = _beanName = name
+  def beanName_=(name: Symbol) { _beanName = name }
 
   /**
    * Adds a property to the bean and returns the property,
@@ -36,7 +36,7 @@ trait Bean {
    */
   def apply[T](propertyName: Symbol): T = _properties(propertyName).get.asInstanceOf[T]
 
-  def update[T](propertyName: Symbol, value: T) = set(propertyName, value)
+  def update[T](propertyName: Symbol, value: T) { set(propertyName, value) }
 
   /**
    * True if a property with the specified name is present.

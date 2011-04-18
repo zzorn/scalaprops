@@ -40,7 +40,7 @@ class BeanFactory {
             false
           case Some(b) =>
             bean = b
-            bean.setBeanName(typeName)
+            bean.beanName_=(typeName)
             true
         }
     }
