@@ -7,4 +7,7 @@ class ScalaPropsProject(info: ProjectInfo) extends DefaultProject(info) {
 
   // Dependencies
   val scalatest = "org.scalatest" % "scalatest" % "1.2" % "test"
+
+  val migLayout = "com.miglayout" % "miglayout" % "3.7.4"  classifier "swing"
+
 }
