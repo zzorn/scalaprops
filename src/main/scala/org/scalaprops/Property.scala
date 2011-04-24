@@ -1,6 +1,8 @@
 package org.scalaprops
 
 import utils.ClassUtils
+import javax.swing.JSpinner.DefaultEditor
+import org.scalaprops.ui.{DefaultEditorFactory, EditorFactory, Editor}
 
 /**
  * Property implementation with listener, validation, and translation support.
@@ -22,6 +24,30 @@ class Property[T](val name: Symbol, initialValue: T)(implicit val kind: Manifest
 
   private var _sourceProperty: Property[T] = null
   private var _boundListener: (T, T) => Unit = null
+  private var _editorFactory: EditorFactory[T] = null
+
+  /**
+   * Returns the current value of the property.
+   */
+  def get: T = _value
+
+  /**
+   * Sets the value of the property.  If there are any translators they are applied to the value,
+   * then any verifiers are run on it. After the value is assigned any listeners are called.
+   */
+  def set(newValue: T) {
+    if (_value != newValue) {
+      val oldValue = _value
+
+      var translatedVal = newValue
+      translators foreach (t => translatedVal = t(translatedVal))
+      validators foreach ( checkInvariant(_, translatedVal) )
+
+      _value = translatedVal
+
+      listeners foreach ( _(oldValue, _value) )
+    }
+  }
 
   /**
    * Add a function that is used to process the value assigned to the property before it is assigned.
@@ -154,26 +180,19 @@ class Property[T](val name: Symbol, initialValue: T)(implicit val kind: Manifest
   def boundProperty: Property[T] = _sourceProperty
 
   /**
-   * Returns the current value of the property.
+   * Specifies the editor type to use for this property.
+   * Allows more detailed configuration than a default editor.
    */
-  def get: T = _value
+  def editor(editorFactory: EditorFactory[T]): Property[T] = {_editorFactory = editorFactory; this}
 
   /**
-   * Sets the value of the property.  If there are any translators they are applied to the value,
-   * then any verifiers are run on it. After the value is assigned any listeners are called.
+   * Creates a new editor UI for this property.
    */
-  def set(newValue: T) {
-    if (_value != newValue) {
-      val oldValue = _value
+  def createEditor: Editor[T] = editorFactory.createEditor(this)
 
-      var translatedVal = newValue
-      translators foreach (t => translatedVal = t(translatedVal))
-      validators foreach ( checkInvariant(_, translatedVal) )
-
-      _value = translatedVal
-
-      listeners foreach ( _(oldValue, _value) )
-    }
+  private def editorFactory: EditorFactory[T] = {
+    if (_editorFactory != null) _editorFactory
+    else DefaultEditorFactory.factoryFor(kind.erasure.asInstanceOf[Class[T]])
   }
 
   private final def checkInvariant(validator: (T) => ValidationResult, value: T) {

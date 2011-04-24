@@ -1,6 +1,7 @@
 package org.scalaprops
 
 import collection.immutable.ListMap
+import org.scalaprops.ui.editors.BeanEditor
 
 /**
  * Base trait for classes that contain properties.
@@ -10,6 +11,7 @@ trait Bean {
 
   private var _properties: Map[Symbol, Property[_]] = ListMap()
   private var _beanName: Symbol = Symbol(getClass.getSimpleName)
+  private var listeners: List[BeanListener] = Nil
 
   def beanName: Symbol = _beanName
 
@@ -87,7 +89,24 @@ trait Bean {
    */
   def addProperty[T](property: Property[T]): Property[T] = {
     _properties = _properties + (property.name -> property)
+    onPropertyAdded(property)
     property
+  }
+
+  /**
+   * Removes the specified property.
+   */
+  def removeProperty[T](property: Property[T]) {removeProperty(property.name)}
+
+  /**
+   * Removes the property with the specified name.
+   */
+  def removeProperty(name: Symbol) {
+    if (_properties.contains(name)) {
+      val prop = _properties(name)
+      _properties -= name
+      onPropertyRemoved(prop)
+    }
   }
 
   /**
@@ -118,6 +137,25 @@ trait Bean {
     _properties.values foreach (p => p.updateFromBound())
   }
 
+  /**
+   * Adds a listener that is notified when properties are added or removed from the bean.
+   */
+  def addListener(listener: BeanListener) {listeners ::= listener}
+
+  /**
+   * Removes a BeanListener.
+   */
+  def removeListener(listener: BeanListener) {listeners = listeners.filterNot(_ == listener)}
+
+  /**
+   * Creates a UI that can be used to edit this bean.
+   */
+  def createEditor: BeanEditor = {
+    val editor = new BeanEditor()
+    editor.init(new Property[Bean](beanName, this))
+    editor
+  }
+
   override def toString: String = {
     val sb = new StringBuilder()
     sb.append("{\n")
@@ -127,5 +165,8 @@ trait Bean {
     sb.append("}\n")
     sb.toString
   }
+
+  private def onPropertyAdded(property: Property[_]) {listeners foreach (_.onPropertyAdded(this, property))}
+  private def onPropertyRemoved(property: Property[_]) {listeners foreach (_.onPropertyRemoved(this, property))}
 
 }

@@ -1,9 +1,9 @@
 package org.scalaprops
 
-import exporter.{JsonBeanExporter, BeanExporter}
 import java.lang.IllegalArgumentException
-import parser.{BeanParser, JsonBeanParser}
 import org.scalatest.FunSuite
+import org.scalaprops.exporter.{BeanExporter, JsonBeanExporter}
+import org.scalaprops.parser.{JsonBeanParser, BeanParser}
 
 class PropertiesTest extends FunSuite {
 
