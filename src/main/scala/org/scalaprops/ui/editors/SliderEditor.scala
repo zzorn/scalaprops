@@ -1,16 +1,18 @@
 package org.scalaprops.ui.editors
 
 import org.scalaprops.ui.{EditorFactory, Editor}
-import javax.swing.JSlider
 import org.scalaprops.ui.util.NamedPanel
 import javax.swing.event.{ChangeEvent, ChangeListener}
+import javax.swing.{JPanel, JSlider}
 
 /**
  * 
  */
 class SliderEditor[T](start: T, end: T, c: Class[T]) extends NamedPanel with Editor[T] {
   private val MAX_UI_VALUE = 1000
-  private var slider: JSlider = null
+
+  private var slider: JPanel = null
+
   private val startD: Double = toDouble(start)
   private val endD: Double = toDouble(end)
 
