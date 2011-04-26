@@ -1,7 +1,6 @@
 package org.scalaprops.example
 
 import org.scalaprops.Bean
-import scala.swing.Slider
 import org.scalaprops.ui.editors.Slider
 import javax.swing.{JComponent, JPanel, JFrame}
 import net.miginfocom.swing.MigLayout
