@@ -118,5 +118,47 @@ object GraphicsUtils {
     drawRhomb( g, mediumColor, size-3, x, y )
   }
 
+  /**
+   *  Paint an indicator for sliders etc.
+   */
+  def paintIndicator(g2: Graphics2D,
+                     width : Int,
+                     height: Int,
+                     relativePosition: Double,
+                     isVertical: Boolean,
+                     darkColor : Color,
+                     mediumColor : Color,
+                     lightColor : Color) {
+
+    def edgeTriangle( color: java.awt.Color, x: Float, y: Float, d1 : Float, d2 :Float, size :Float ) {
+      triangle( g2, color,
+        x - d1 * size, y - d2 * size,
+        x + d2 * size, y + d1 * size,
+        x + d1 * size, y + d2 * size)
+    }
+
+    def drawTriangles(color1: java.awt.Color, color2: java.awt.Color, x1: Float, y1: Float, x2: Float, y2: Float, d1 : Float, d2 :Float, size :Float ) {
+/* Looks better with only one
+        edgeTriangle( color1, x1, y1, d1, d2, size )
+*/
+      edgeTriangle( color2, x2, y2, -d1, -d2, size )
+    }
+
+    val w = width.toFloat
+    val h = height.toFloat
+    val size = (Math.min(w, h) / 3).toInt
+    val r = relativePosition.floatValue
+    val dx = if (isVertical) 0f else 1f
+    val dy = if (isVertical) -1f else 0f
+    val x1 = if (isVertical) 0f else r * w
+    val x2 = if (isVertical) w - 1f else r * w
+    val y1 = if (isVertical) (1f -r) * h else 0f
+    val y2 = if (isVertical) (1f -r) * h else h - 1f
+
+    drawTriangles( darkColor, darkColor, x1, y1, x2, y2, dx, dy, size+2 )
+    drawTriangles( lightColor, lightColor,  x1, y1, x2, y2, dx, dy, size )
+    drawTriangles( mediumColor, mediumColor, x1, y1, x2, y2, dx, dy, size-2 )
+
+  }
 
 }
