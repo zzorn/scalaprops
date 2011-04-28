@@ -6,6 +6,7 @@ Scalaprops is a simple Scala library for properties oriented programminging.
 It provides listener, value translation, and validator support for properties.
 It also includes a Bean trait with factory methods for creating properties,
 and utility classes for saving and loading beans to/from streams.
+Now also includes support for creating property editor UI:s for editing the beans.
 
 
 == License ==
@@ -43,6 +44,9 @@ New BSD license.
 
     // List names and values of properties
     ball.properties foreach { nameAndProperty => println(nameAndProperty._1.name + " = " + nameAndProperty._2.get) }
+
+    // Create swing UI for editing the bean
+    val ui: JComponent = ball.createEditor
 
 
 == Webpage & contact ==
