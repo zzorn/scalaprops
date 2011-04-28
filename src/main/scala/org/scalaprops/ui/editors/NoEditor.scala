@@ -7,24 +7,24 @@ import org.scalaprops.ui.util.NamedPanel
 /**
  * Just shows toString version of the value.
  */
-class NoEditor extends NamedPanel() with Editor[AnyRef] {
+class NoEditor[T] extends NamedPanel() with Editor[T] {
 
   private val valueDisplay = new JLabel()
 
-  add(valueDisplay, "grow")
+  add(valueDisplay, "grow, width 100%")
 
-  protected def onValueChange(oldValue: AnyRef, newValue: AnyRef) {
+  protected def onExternalValueChange(oldValue: T, newValue: T) {
     showValue(newValue)
   }
 
-  protected def onInit(initialValue: AnyRef, name: String) {
+  protected def onInit(initialValue: T, name: String) {
     title = name
     showValue(initialValue)
   }
 
-  private def showValue(v: AnyRef) {
+  private def showValue(v: T) {
     if (v == null) valueDisplay.setText("null")
-    else valueDisplay.setText(v.toString)
+    else valueDisplay.setText("" + v)
   }
 
 }

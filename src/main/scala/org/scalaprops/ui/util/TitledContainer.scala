@@ -10,7 +10,7 @@ trait TitledContainer {
   protected val titleLabel: JLabel = new JLabel("")
 
   def title = titleLabel.getText
-  def title_=(title: String) = titleLabel.setText(title)
+  def title_=(title: String) { titleLabel.setText(title) }
 
 
 }

@@ -24,7 +24,7 @@ class Property[T](val name: Symbol, initialValue: T)(implicit val kind: Manifest
 
   private var _sourceProperty: Property[T] = null
   private var _boundListener: (T, T) => Unit = null
-  private var _editorFactory: EditorFactory[T] = null
+  private var _editorFactory: (Property[T]) => Editor[T] = null
 
   /**
    * Returns the current value of the property.
@@ -183,16 +183,14 @@ class Property[T](val name: Symbol, initialValue: T)(implicit val kind: Manifest
    * Specifies the editor type to use for this property.
    * Allows more detailed configuration than a default editor.
    */
-  def editor(editorFactory: EditorFactory[T]): Property[T] = {_editorFactory = editorFactory; this}
+  def editor(editorFactory: (Property[T]) => Editor[T]): Property[T] = {_editorFactory = editorFactory; this}
 
   /**
    * Creates a new editor UI for this property.
    */
-  def createEditor: Editor[T] = editorFactory.createEditor(this)
-
-  private def editorFactory: EditorFactory[T] = {
-    if (_editorFactory != null) _editorFactory
-    else DefaultEditorFactory.factoryFor(kind.erasure.asInstanceOf[Class[T]])
+  def createEditor: Editor[T] = {
+    if (_editorFactory != null) _editorFactory(this)
+    else DefaultEditorFactory.createEditorFor(kind.erasure.asInstanceOf[Class[T]], this)
   }
 
   private final def checkInvariant(validator: (T) => ValidationResult, value: T) {

@@ -8,7 +8,7 @@ import javax.swing.{JLabel, JPanel}
  */
 class NamedPanel(name: String = "") extends JPanel(new MigLayout()) with TitledContainer {
 
-  add(titleLabel)
+  add(titleLabel, "pushx 100")
   title = name
 
 }

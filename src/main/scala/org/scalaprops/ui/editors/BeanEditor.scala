@@ -10,7 +10,7 @@ import java.awt.BorderLayout
 /**
  * An UI for editing beans.
  */
-class BeanEditor extends TitledPanel(constraints = "wrap 1") with Editor[Bean] {
+class BeanEditor extends TitledPanel() with Editor[Bean] {
 
   private var propertyEditors: List[Editor[_]] = Nil
 
@@ -26,7 +26,9 @@ class BeanEditor extends TitledPanel(constraints = "wrap 1") with Editor[Bean] {
     }
   }
 
-  protected def onValueChange(oldValue: Bean, newValue: Bean) {
+  setLayout(new MigLayout("wrap 1, fillx, insets 0","[grow]","0[]0[]0"))
+
+  protected def onExternalValueChange(oldValue: Bean, newValue: Bean) {
     if (oldValue != null) oldValue.removeListener(beanListener)
 
     // Remove old UI
@@ -55,7 +57,7 @@ class BeanEditor extends TitledPanel(constraints = "wrap 1") with Editor[Bean] {
   private def addPropertyUi(property: Property[_]) {
     val editor = property.createEditor
     propertyEditors ::= editor
-    add(editor)
+    add(editor, "width 100%")
   }
 
   private def removePropertyUi(property: Property[_]) {

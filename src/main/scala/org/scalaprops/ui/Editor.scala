@@ -3,6 +3,7 @@ package org.scalaprops.ui
 import javax.swing.JComponent
 import org.scalaprops.Property
 import java.util.logging.{Level, Logger}
+import util.TitledContainer
 
 /**
  * Base trait for editors that can edit some type of property value.
@@ -10,7 +11,7 @@ import java.util.logging.{Level, Logger}
 // TODO: Just make it extend JComponent?
 // TODO: Ability to set to read-only, for just displaying the value
 // TODO: Change init method to constructor?  Do listener setup etc outside
-trait Editor[T] extends JComponent {
+trait Editor[T] extends JComponent with TitledContainer {
 
   private var _value: T = _
   private var _property: Property[T] = null
@@ -28,6 +29,7 @@ trait Editor[T] extends JComponent {
     _property = property
     _value = property.get
     val name = property.name.name // TODO: Camel case to space separated
+    title = name
 
     property.addListener(valueChanged)
     
@@ -50,23 +52,12 @@ trait Editor[T] extends JComponent {
   private[scalaprops] final def valueChanged(oldValue: T, newValue: T) {
     if (_value != newValue) {
       _value = newValue
-      onValueChange(oldValue, newValue)
+      onExternalValueChange(oldValue, newValue)
     }
   }
 
 
   protected def value: T = _value
-  protected def value_=(v: T) {
-    if (v != _value && !_editing) {
-      val oldVal = _value
-      _value = v
-
-      // Use _editing flag to avoid infinite loops e.g. when a property has some transformation
-      _editing = true
-      _property.set(_value)
-      _editing = false
-    }
-  }
 
   /**
    * Called only once, when the editor is initialized.
@@ -76,17 +67,23 @@ trait Editor[T] extends JComponent {
   /**
    * Called when the value has changed externally, and the editor should be updated to reflect the current value.
    */
-  protected def onValueChange(oldValue: T, newValue: T)
+  protected def onExternalValueChange(oldValue: T, newValue: T)
 
   /**
    * Should be called when the edit has changed, and the property value should be updated.
    */
   protected final def onEditorChange( newValue: T) {
-    try {
-      if (property != null) property.set(newValue)
-    } catch {
-      case e: IllegalArgumentException =>
-        Logger.getLogger(getClass.getName).log(Level.WARNING, "Problem when assigning value to property from editor: " + e.getMessage, e)
+    if (newValue != _value && !_editing) {
+      _editing = true
+      _value = newValue
+      try {
+        if (property != null) property.set(newValue)
+      } catch {
+        case e: IllegalArgumentException =>
+          Logger.getLogger(getClass.getName).log(Level.WARNING, "Problem when assigning value to property from editor: " + e.getMessage, e)
+      } finally {
+        _editing = false
+      }
     }
   }
 

@@ -1,19 +1,31 @@
 package org.scalaprops.ui.editors
 
 import org.scalaprops.ui.{EditorFactory, Editor}
-import org.scalaprops.ui.util.NamedPanel
 import javax.swing.event.{ChangeEvent, ChangeListener}
 import java.awt.image.BufferedImage
 import java.awt.event._
-import org.scalaprops.utils.{GraphicsUtils, MathUtils}
 import java.awt._
-import javax.swing.{BorderFactory, JPanel, JSlider}
+import org.scalaprops.utils.{ClassUtils, GraphicsUtils, MathUtils}
+import org.scalaprops.ui.util.{NumberSpinnerFactory, NamedPanel}
+import javax.swing.{JSpinner, BorderFactory, JPanel, JSlider}
+
+/**
+ * Slider factory.
+ */
+case class Slider[T](start: T,
+                     end: T,
+                     includeSpinner: Boolean = true,
+                     backgroundPainter: SliderBackgroundPainter = DefaultSliderBackgroundPainter)(implicit m: Manifest[T]) extends EditorFactory[T] {
+  protected def createEditorInstance = new SliderEditor(start, end, m.erasure.asInstanceOf[Class[T]], includeSpinner, backgroundPainter)
+}
 
 /**
  * 
  */
 class SliderEditor[T](start: T, end: T, c: Class[T],
-                      backgroundPainter: SliderBackgroundPainter = DefaultSliderBackgroundPainter) extends NamedPanel with Editor[T] {
+                      includeSpinner: Boolean = true,
+                      backgroundPainter: SliderBackgroundPainter = DefaultSliderBackgroundPainter)
+        extends NamedPanel with Editor[T] {
 
   private var relativePosition: Double = 0.0;
   private val WHEEL_STEP = 0.05f
@@ -24,6 +36,8 @@ class SliderEditor[T](start: T, end: T, c: Class[T],
   private val darkColor: Color = new Color( 0.25f, 0.25f, 0.25f )
   private val mediumColor: Color = new Color( 0.75f, 0.75f, 0.75f)
   private val lightColor: Color = new Color( 1f,1f,1f )
+
+  private var spinner: JSpinner = null
 
   private var slider: JPanel = new JPanel() {
 
@@ -78,19 +92,41 @@ class SliderEditor[T](start: T, end: T, c: Class[T],
   private val startD: Double = toDouble(start)
   private val endD: Double = toDouble(end)
 
-  protected def onValueChange(oldValue: T, newValue: T) {
-    valueToUi(newValue)
+  protected def onExternalValueChange(oldValue: T, newValue: T) {
+    updateSpinnerUi(newValue)
+    updateSliderUi(newValue)
   }
 
   protected def onInit(initialValue: T, name: String) {
-    title = name
-
     slider.addMouseListener(mouseUpdateListener)
     slider.addMouseMotionListener(mouseUpdateListener)
     slider.addMouseWheelListener(mouseUpdateListener)
 
-    add(slider, "dock south")
-    valueToUi(initialValue)
+    add(slider, "dock south, width 100%")
+
+    if (includeSpinner) {
+      spinner = NumberSpinnerFactory.createNumberSpinner(c,
+                                                             ClassUtils.doubleToT(0, c).asInstanceOf[Number],
+                                                             start.asInstanceOf[Number],
+                                                             end.asInstanceOf[Number],
+                                                             ClassUtils.doubleToT(WHEEL_STEP * endD, c).asInstanceOf[Number],
+                                                             true)
+
+      spinner.addChangeListener(new ChangeListener {
+        def stateChanged(e: ChangeEvent) {
+          val value = spinner.getValue.asInstanceOf[ T ]
+          updateSpinnerUi(value)
+          updateSliderUi(value)
+          onEditorChange(value)
+        }
+      })
+
+      add(spinner, "align right, width 100px")
+    }
+
+    updateSpinnerUi(value)
+    updateSliderUi(initialValue)
+    updateSpinnerUi(initialValue)
   }
 
   private val mouseUpdateListener = new MouseAdapter() {
@@ -98,10 +134,13 @@ class SliderEditor[T](start: T, end: T, c: Class[T],
     override def mouseReleased(e: MouseEvent) {updatePosition(e)}
     override def mouseDragged(e: MouseEvent) {updatePosition(e)}
     override def mouseWheelMoved(e: MouseWheelEvent) {
-      val amount = e.getWheelRotation
+      val amount = -e.getWheelRotation
       relativePosition = MathUtils.clampToZeroToOne(relativePosition + WHEEL_STEP * amount)
       slider.repaint()
-      onEditorChange(uiToValue)
+      val value = sliderUiToValue
+      updateSliderUi(value)
+      updateSpinnerUi(value)
+      onEditorChange(value)
     }
   }
 
@@ -117,48 +156,38 @@ class SliderEditor[T](start: T, end: T, c: Class[T],
     relativePosition = MathUtils.clampToZeroToOne(relativePosition)
 
     slider.repaint()
-    onEditorChange(uiToValue)
+    val value = sliderUiToValue
+    onEditorChange(value)
+    updateSliderUi(value)
+    updateSpinnerUi(value)
   }
 
-  private def valueToUi(v: T) {
+  private def updateSliderUi(v: T) {
     val d = toDouble(v)
     val r = if (endD == startD) 0.5
-                       else (d - startD) / (endD - startD)
+            else (d - startD) / (endD - startD)
     if (r != relativePosition) {
       relativePosition = r
       slider.repaint()
     }
   }
 
-  private def uiToValue: T = {
-    toT(startD + (endD - startD) * relativePosition)
+  private def updateSpinnerUi(v: T) {
+    if (spinner != null) {
+      spinner.setValue(v)
+      spinner.repaint()
+    }
+  }
+
+  private def sliderUiToValue: T = {
+    ClassUtils.doubleToT(startD + (endD - startD) * relativePosition, c,
+                   {d =>  if (relativePosition <= 0.5) start else end})
   }
 
   private def toDouble(v: T): Double = {
-    if (c.isAssignableFrom(classOf[Byte])) v.asInstanceOf[Byte].doubleValue
-    else if (c.isAssignableFrom(classOf[Short])) v.asInstanceOf[Short].doubleValue
-    else if (c.isAssignableFrom(classOf[Int])) v.asInstanceOf[Int].doubleValue
-    else if (c.isAssignableFrom(classOf[Long])) v.asInstanceOf[Long].doubleValue
-    else if (c.isAssignableFrom(classOf[Float])) v.asInstanceOf[Float].doubleValue
-    else if (c.isAssignableFrom(classOf[Double])) v.asInstanceOf[Double].doubleValue
-    else if (v == end) 1.0 else 0.0
+    ClassUtils.tToDouble(v, c, { (o: T) => if (o == end) 1.0 else 0.0 })
   }
 
-  private def toT(v: Double): T = {
-    if (c.isAssignableFrom(classOf[Byte])) v.byteValue.asInstanceOf[T]
-    else if (c.isAssignableFrom(classOf[Short])) v.shortValue.asInstanceOf[T]
-    else if (c.isAssignableFrom(classOf[Int])) v.intValue.asInstanceOf[T]
-    else if (c.isAssignableFrom(classOf[Long])) v.longValue.asInstanceOf[T]
-    else if (c.isAssignableFrom(classOf[Float])) v.floatValue.asInstanceOf[T]
-    else if (c.isAssignableFrom(classOf[Double])) v.doubleValue.asInstanceOf[T]
-    else if (v <= 0.5) start else end
-  }
-}
-
-case class Slider[T](start: T,
-                     end: T,
-                     backgroundPainter: SliderBackgroundPainter = DefaultSliderBackgroundPainter)(implicit m: Manifest[T]) extends EditorFactory[T] {
-  protected def createEditorInstance = new SliderEditor(start, end, m.erasure.asInstanceOf[Class[T]], backgroundPainter)
 }
 
 trait SliderBackgroundPainter {
