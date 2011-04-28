@@ -1,36 +1,24 @@
 package org.scalaprops.ui.editors
 
-import javax.swing.JLabel
-import org.scalaprops.ui.util.NamedPanel
 import org.scalaprops.ui.{EditorFactory, Editor}
 import java.awt.Dimension
+import javax.swing.{JPanel}
 
-case class NoEditorFactory[T] extends EditorFactory[T] {
+case class NoEditorFactory extends EditorFactory {
   protected def createEditorInstance = new NoEditor()
 }
 
 /**
- * Just shows toString version of the value.
+ * Editor that doesn't show anything.
  */
-class NoEditor[T] extends NamedPanel() with Editor[T] {
+class NoEditor extends JPanel() with Editor[Any] {
 
-  private val valueDisplay = new JLabel()
+  setPreferredSize(new Dimension(0,0))
 
-  valueDisplay.setMinimumSize(new Dimension(24, 24))
-  add(valueDisplay, "align right")
-
-  protected def onExternalValueChange(oldValue: T, newValue: T) {
-    showValue(newValue)
+  protected def onExternalValueChange(oldValue: Any, newValue: Any) {
   }
 
-  protected def onInit(initialValue: T, name: String) {
-    title = name
-    showValue(initialValue)
-  }
-
-  private def showValue(v: T) {
-    if (v == null) valueDisplay.setText("null")
-    else valueDisplay.setText("" + v)
+  protected def onInit(initialValue: Any, name: String) {
   }
 
 }

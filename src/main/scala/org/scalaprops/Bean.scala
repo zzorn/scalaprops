@@ -7,6 +7,8 @@ import org.scalaprops.ui.editors.BeanEditor
  * Base trait for classes that contain properties.
  * Provides factory method for creating properties, and a query function for returning added properties.
  */
+// TODO: Add support for listening to any property changes in the bean - add the listeners to the propoerties only as needed
+// TODO: Also allow listening to changes to properties in bean values of properties
 trait Bean {
 
   private var _properties: Map[Symbol, Property[_]] = ListMap()
