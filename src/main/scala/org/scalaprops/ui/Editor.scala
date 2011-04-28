@@ -8,14 +8,14 @@ import util.TitledContainer
 /**
  * Base trait for editors that can edit some type of property value.
  */
-// TODO: Just make it extend JComponent?
 // TODO: Ability to set to read-only, for just displaying the value
 // TODO: Change init method to constructor?  Do listener setup etc outside
 trait Editor[T] extends JComponent with TitledContainer {
 
   private var _value: T = _
   private var _property: Property[T] = null
-  private var _editing: Boolean = false
+  private var _uiUpdateOngoing: Boolean = false
+  private var _externalUpdateOngoing: Boolean = false
 
   /**
    * The property that this editor edits.
@@ -52,7 +52,10 @@ trait Editor[T] extends JComponent with TitledContainer {
   private[scalaprops] final def valueChanged(oldValue: T, newValue: T) {
     if (_value != newValue) {
       _value = newValue
+
+      _uiUpdateOngoing = true
       onExternalValueChange(oldValue, newValue)
+      _uiUpdateOngoing = false
     }
   }
 
@@ -73,8 +76,8 @@ trait Editor[T] extends JComponent with TitledContainer {
    * Should be called when the edit has changed, and the property value should be updated.
    */
   protected final def onEditorChange( newValue: T) {
-    if (newValue != _value && !_editing) {
-      _editing = true
+    if (newValue != _value && !_externalUpdateOngoing && !_uiUpdateOngoing) {
+      _externalUpdateOngoing = true
       _value = newValue
       try {
         if (property != null) property.set(newValue)
@@ -82,7 +85,7 @@ trait Editor[T] extends JComponent with TitledContainer {
         case e: IllegalArgumentException =>
           Logger.getLogger(getClass.getName).log(Level.WARNING, "Problem when assigning value to property from editor: " + e.getMessage, e)
       } finally {
-        _editing = false
+        _externalUpdateOngoing = false
       }
     }
   }

@@ -21,15 +21,15 @@ object DefaultEditorFactory {
   def createEditorFor[T](kind: Class[T], property: Property[T]): Editor[T] = {
     val wrappedKind = ClassUtils.nativeTypeToWrappedType(kind)
     val editor = wrappedKind.getName match {
-      case STRING => new StringEditor()
-      case BOOL => new BoolEditor()
+      case STRING => (new StringEditorFactory()).apply(property.asInstanceOf[Property[String]])
+      case BOOL => (new BoolEditorFactory()).apply(property.asInstanceOf[Property[Boolean]])
       case BYTE => (new ByteEditorFactory).apply(property.asInstanceOf[Property[Byte]])
       case SHORT => (new ShortEditorFactory).apply(property.asInstanceOf[Property[Short]])
       case INT => (new IntEditorFactory).apply(property.asInstanceOf[Property[Int]])
       case LONG => (new LongEditorFactory).apply(property.asInstanceOf[Property[Long]])
       case FLOAT => (new FloatEditorFactory).apply(property.asInstanceOf[Property[Float]])
       case DOUBLE => (new DoubleEditorFactory).apply(property.asInstanceOf[Property[Double]])
-      case _ => new NoEditor[T]()
+      case _ => (new NoEditorFactory[T]()).apply(property.asInstanceOf[Property[T]])
     }
 
     editor.asInstanceOf[Editor[T]]

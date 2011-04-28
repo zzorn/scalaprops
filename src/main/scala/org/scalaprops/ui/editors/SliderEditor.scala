@@ -12,7 +12,7 @@ import javax.swing.{JSpinner, BorderFactory, JPanel, JSlider}
 /**
  * Slider factory.
  */
-case class Slider[T](start: T,
+case class SliderFactory[T](start: T,
                      end: T,
                      includeSpinner: Boolean = true,
                      backgroundPainter: SliderBackgroundPainter = DefaultSliderBackgroundPainter)(implicit m: Manifest[T]) extends EditorFactory[T] {

@@ -1,6 +1,10 @@
 package org.scalaprops.ui.editors
 
-import org.scalaprops.ui.Editor
+import org.scalaprops.ui.{EditorFactory, Editor}
+
+class BoolEditorFactory extends EditorFactory[Boolean] {
+  protected def createEditorInstance = new BoolEditor()
+}
 
 /**
  * 

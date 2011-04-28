@@ -4,7 +4,7 @@ import org.scalaprops.Bean
 import javax.swing.{JComponent, JPanel, JFrame}
 import net.miginfocom.swing.MigLayout
 import java.awt.{Color, Dimension, BorderLayout}
-import org.scalaprops.ui.editors.{FloatEditorFactory, IntEditorFactory, NumberEditorFactory, Slider}
+import org.scalaprops.ui.editors.{StringEditorFactory, SliderFactory, FloatEditorFactory, IntEditorFactory}
 
 /**
  * Demonstrates user interface creation for beans.
@@ -14,11 +14,12 @@ object UiExample {
   class Furby extends Bean {
     val name = p('name, "Purr")
     val specialPower = p('power, 'Lighting)
+    val desc = p('desc, "furry thingy")
     val lives = p('lives, 8).editor(new IntEditorFactory(min = 0, max=10, step =2))
     val size = p('size, 0.7f).editor(new FloatEditorFactory(min = 0f))
     val activated = p('activated, false)
     val color = p('color, Color.RED)
-    val awesomness = p('awesomness, 4.5).editor(Slider(0.0, 5.0)).onValueChange({(o,n)=>  println("Value changed to " + n)})
+    val awesomness = p('awesomness, 4.5).editor(SliderFactory(0.0, 5.0)).onValueChange({(o,n)=>  println("Value changed to " + n)})
   }
 
   def main(args: Array[ String ])
