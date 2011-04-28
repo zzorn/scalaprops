@@ -41,7 +41,7 @@ trait Editor[T] extends JComponent with TitledContainer {
    * Stops listening to the property and removes memory references.
    */
   final def deInit() {
-    _property.removeListener(valueChanged)
+    if (_property != null) _property.removeListener(valueChanged)
 
     onDeInit()
 
