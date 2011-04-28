@@ -7,7 +7,7 @@ import java.awt.event._
 import java.awt._
 import org.scalaprops.utils.{ClassUtils, GraphicsUtils, MathUtils}
 import org.scalaprops.ui.util.{NumberSpinnerFactory, NamedPanel}
-import javax.swing.{JSpinner, BorderFactory, JPanel, JSlider}
+import javax.swing.{JSpinner, BorderFactory, JPanel}
 
 /**
  * Slider factory.
@@ -15,8 +15,17 @@ import javax.swing.{JSpinner, BorderFactory, JPanel, JSlider}
 case class SliderFactory[T](start: T,
                      end: T,
                      includeSpinner: Boolean = true,
+                     restrictNumberFieldMin: Boolean = true,
+                     restrictNumberFieldMax: Boolean = true,
                      backgroundPainter: SliderBackgroundPainter = DefaultSliderBackgroundPainter)(implicit m: Manifest[T]) extends EditorFactory[T] {
-  protected def createEditorInstance = new SliderEditor(start, end, m.erasure.asInstanceOf[Class[T]], includeSpinner, backgroundPainter)
+  protected def createEditorInstance = new SliderEditor(
+    start,
+    end,
+    m.erasure.asInstanceOf[Class[T]],
+    includeSpinner,
+    restrictNumberFieldMin,
+    restrictNumberFieldMax,
+    backgroundPainter)
 }
 
 /**
@@ -24,6 +33,8 @@ case class SliderFactory[T](start: T,
  */
 class SliderEditor[T](start: T, end: T, c: Class[T],
                       includeSpinner: Boolean = true,
+                      restrictNumberFieldMin: Boolean = true,
+                      restrictNumberFieldMax: Boolean = true,
                       backgroundPainter: SliderBackgroundPainter = DefaultSliderBackgroundPainter)
         extends NamedPanel with Editor[T] {
 
@@ -106,11 +117,11 @@ class SliderEditor[T](start: T, end: T, c: Class[T],
 
     if (includeSpinner) {
       spinner = NumberSpinnerFactory.createNumberSpinner(c,
-                                                             ClassUtils.doubleToT(0, c).asInstanceOf[Number],
-                                                             start.asInstanceOf[Number],
-                                                             end.asInstanceOf[Number],
-                                                             ClassUtils.doubleToT(WHEEL_STEP * endD, c).asInstanceOf[Number],
-                                                             true)
+                                                         ClassUtils.doubleToT(0, c).asInstanceOf[Number],
+                                                         ClassUtils.doubleToT(WHEEL_STEP * endD, c).asInstanceOf[Number],
+                                                         true,
+                                                         if (restrictNumberFieldMin) start.asInstanceOf[Number] else null,
+                                                         if (restrictNumberFieldMax) end.asInstanceOf[Number] else null)
 
       spinner.addChangeListener(new ChangeListener {
         def stateChanged(e: ChangeEvent) {

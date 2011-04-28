@@ -13,7 +13,7 @@ import org.scalaprops.utils.ClassUtils
 // TODO: Replace the whole spinner implementation at some point, the swing one requires jumping through too many broken hoops.
 object NumberSpinnerFactory extends JSpinner {
 
-  def createNumberSpinner(kind: Class[_], defaultValue: Number, min: Number, max: Number, step: Number, fractionalNumbers: Boolean): JSpinner = {
+  def createNumberSpinner(kind: Class[_], defaultValue: Number, step: Number, fractionalNumbers: Boolean, min: Number = null, max: Number = null): JSpinner = {
     val numberModel = new SpinnerNumberModel(defaultValue,
                                              min.asInstanceOf[Comparable[Number]],
                                              max.asInstanceOf[Comparable[Number]],
@@ -58,8 +58,8 @@ object NumberSpinnerFactory extends JSpinner {
         val oldValue = ClassUtils.tToDouble(spinner.getValue, kind.asInstanceOf[Class[Any]])
         val newValue = oldValue + stepSize * rotation
         
-        if (newValue <= min.doubleValue) spinner.setValue(min)
-        else if (newValue >= max.doubleValue) spinner.setValue(max)
+        if (min != null && newValue <= min.doubleValue) spinner.setValue(min)
+        else if (max != null && newValue >= max.doubleValue) spinner.setValue(max)
         else spinner.setValue( ClassUtils.doubleToT(newValue, kind) )
       }
     })

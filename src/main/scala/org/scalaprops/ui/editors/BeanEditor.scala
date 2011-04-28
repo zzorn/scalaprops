@@ -1,11 +1,15 @@
 package org.scalaprops.ui.editors
 
-import org.scalaprops.ui.Editor
 import org.scalaprops.ui.util.TitledPanel
 import javax.swing.{JPanel, JComponent}
 import net.miginfocom.swing.MigLayout
 import org.scalaprops.{Property, BeanListener, Bean}
 import java.awt.BorderLayout
+import org.scalaprops.ui.{EditorFactory, Editor}
+
+class BeanEditorFactory extends EditorFactory[Bean] {
+  protected def createEditorInstance = new BeanEditor
+}
 
 /**
  * An UI for editing beans.

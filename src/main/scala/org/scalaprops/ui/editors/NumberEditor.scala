@@ -36,10 +36,10 @@ class NumberEditor[T](kind: Class[T], defaultValue:T, step: T, min: T, max: T, f
 
   private val numberSpinner: JSpinner = NumberSpinnerFactory.createNumberSpinner(kind,
                                                                                  defaultValue.asInstanceOf[Number],
-                                                                                 min.asInstanceOf[Number],
-                                                                                 max.asInstanceOf[Number],
                                                                                  step.asInstanceOf[Number],
-                                                                                 fractionalNumbers)
+                                                                                 fractionalNumbers,
+                                                                                 min.asInstanceOf[Number],
+                                                                                 max.asInstanceOf[Number])
 
 
   numberSpinner.addChangeListener(new ChangeListener{

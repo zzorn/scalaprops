@@ -2,7 +2,7 @@ package org.scalaprops.ui
 
 import org.scalaprops.ui.editors._
 import org.scalaprops.utils.ClassUtils
-import org.scalaprops.Property
+import org.scalaprops.{Bean, Property}
 
 /**
  * 
@@ -18,21 +18,28 @@ object DefaultEditorFactory {
   private val FLOAT = classOf[java.lang.Float].getName
   private val DOUBLE = classOf[java.lang.Double].getName
 
-  def createEditorFor[T](kind: Class[T], property: Property[T]): Editor[T] = {
-    val wrappedKind = ClassUtils.nativeTypeToWrappedType(kind)
-    val editor = wrappedKind.getName match {
-      case STRING => (new StringEditorFactory()).apply(property.asInstanceOf[Property[String]])
-      case BOOL => (new BoolEditorFactory()).apply(property.asInstanceOf[Property[Boolean]])
-      case BYTE => (new ByteEditorFactory).apply(property.asInstanceOf[Property[Byte]])
-      case SHORT => (new ShortEditorFactory).apply(property.asInstanceOf[Property[Short]])
-      case INT => (new IntEditorFactory).apply(property.asInstanceOf[Property[Int]])
-      case LONG => (new LongEditorFactory).apply(property.asInstanceOf[Property[Long]])
-      case FLOAT => (new FloatEditorFactory).apply(property.asInstanceOf[Property[Float]])
-      case DOUBLE => (new DoubleEditorFactory).apply(property.asInstanceOf[Property[Double]])
-      case _ => (new NoEditorFactory[T]()).apply(property.asInstanceOf[Property[T]])
-    }
+  // TODO: Streamlined design for editors and editor factories, so that it's easier to create both
 
-    editor.asInstanceOf[Editor[T]]
+  def createEditorFor[T](kind: Class[T], property: Property[T]): Editor[T] = {
+    if (classOf[Bean].isAssignableFrom(kind)) {
+      (new BeanEditorFactory()).apply(property.asInstanceOf[Property[Bean]]).asInstanceOf[Editor[T]]
+    }
+    else {
+      val wrappedKind = ClassUtils.nativeTypeToWrappedType(kind)
+      val editor = wrappedKind.getName match {
+        case STRING => (new StringEditorFactory()).apply(property.asInstanceOf[Property[String]])
+        case BOOL => (new BoolEditorFactory()).apply(property.asInstanceOf[Property[Boolean]])
+        case BYTE => (new ByteEditorFactory).apply(property.asInstanceOf[Property[Byte]])
+        case SHORT => (new ShortEditorFactory).apply(property.asInstanceOf[Property[Short]])
+        case INT => (new IntEditorFactory).apply(property.asInstanceOf[Property[Int]])
+        case LONG => (new LongEditorFactory).apply(property.asInstanceOf[Property[Long]])
+        case FLOAT => (new FloatEditorFactory).apply(property.asInstanceOf[Property[Float]])
+        case DOUBLE => (new DoubleEditorFactory).apply(property.asInstanceOf[Property[Double]])
+        case _ => (new NoEditorFactory[T]()).apply(property.asInstanceOf[Property[T]])
+      }
+
+      editor.asInstanceOf[Editor[T]]
+    }
   }
 
 }
