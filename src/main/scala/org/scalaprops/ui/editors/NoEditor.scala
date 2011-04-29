@@ -4,7 +4,7 @@ import org.scalaprops.ui.{EditorFactory, Editor}
 import java.awt.Dimension
 import javax.swing.{JPanel}
 
-case class NoEditorFactory[T] extends EditorFactory[T] {
+case class NoEditorFactory[T]() extends EditorFactory[T] {
   protected def createEditorInstance = new NoEditor()
 }
 

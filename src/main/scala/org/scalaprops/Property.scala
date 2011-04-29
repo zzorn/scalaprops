@@ -49,7 +49,7 @@ class Property[T](val name: Symbol, initialValue: T, _bean: Bean, deepListener: 
 
       // Notify listeners
       listeners foreach ( _(oldValue, _value) )
-      deepListener.onPropertyChanged(bean, this)
+      if (deepListener != null) deepListener.onPropertyChanged(bean, this)
     }
   }
 
@@ -239,14 +239,14 @@ class Property[T](val name: Symbol, initialValue: T, _bean: Bean, deepListener: 
   }
 
   private def removeDeepListener(v: T) {
-    if (v != null && v.isInstanceOf[ Bean ]) {
+    if (v != null && deepListener != null && v.isInstanceOf[ Bean ]) {
       val beanValue = v.asInstanceOf[ Bean ]
       beanValue.removeDeepListener(deepListener)
     }
   }
 
   private def addDeepListener(v: T) {
-    if (v != null && classOf[Bean].isInstance(v)) {
+    if (v != null && deepListener != null && classOf[Bean].isInstance(v)) {
       val beanValue = v.asInstanceOf[ Bean ]
       beanValue.addDeepListener(deepListener)
     }

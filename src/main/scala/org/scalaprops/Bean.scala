@@ -17,15 +17,15 @@ trait Bean {
 
   private val deepListener: BeanListener = new BeanListener {
     def onPropertyRemoved(bean: Bean, property: Property[_]) {
-      deepListeners foreach {_.onPropertyRemoved(bean, property)}
+      deepListeners.filterNot(_ == deepListener) foreach {_.onPropertyRemoved(bean, property)}
     }
     def onPropertyAdded(bean: Bean, property: Property[_]) {
-      deepListeners foreach {_.onPropertyAdded(bean, property)}
+      deepListeners.filterNot(_ == deepListener) foreach {_.onPropertyAdded(bean, property)}
     }
     def onPropertyChanged(bean: Bean, property: Property[_]) {
-      deepListeners foreach {_.onPropertyChanged(bean, property)}
+      deepListeners.filterNot(_ == deepListener) foreach {_.onPropertyChanged(bean, property)}
 
-      if (bean == Bean.this) listeners foreach {_.onPropertyChanged(bean, property)}
+      if (bean == Bean.this) listeners.filterNot(_ == deepListener) foreach {_.onPropertyChanged(bean, property)}
     }
   }
 
@@ -156,6 +156,7 @@ trait Bean {
    * Adds a listener that is notified when properties are changed, added, or removed from this bean.
    */
   def addListener(listener: BeanListener) {
+    require(listener != null, "Listener should not be null")
     listeners ::= listener
   }
 
@@ -171,6 +172,7 @@ trait Bean {
    * this bean or any bean that is a value in a property of this bean.
    */
   def addDeepListener(listener: BeanListener) {
+    require(listener != null, "Listener should not be null")
     deepListeners ::= listener
   }
 
@@ -187,7 +189,7 @@ trait Bean {
   def createEditor: BeanEditor = {
     val editor = new BeanEditor()
     // TODO: A neater way to do this
-    editor.init(new Property[Bean](beanName, this, this, deepListener))
+    editor.init(new Property[Bean](beanName, this, this, null))
     editor
   }
 

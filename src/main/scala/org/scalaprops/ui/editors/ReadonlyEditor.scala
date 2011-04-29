@@ -5,7 +5,7 @@ import org.scalaprops.ui.util.NamedPanel
 import org.scalaprops.ui.{EditorFactory, Editor}
 import java.awt.Dimension
 
-case class ReadonlyFactory[T] extends EditorFactory[T] {
+case class ReadonlyFactory[T]() extends EditorFactory[T] {
   protected def createEditorInstance = new ReadonlyEditor()
 }
 

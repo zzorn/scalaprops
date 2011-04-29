@@ -82,9 +82,12 @@ class PropertiesTest extends FunSuite {
 
   test("deepListeners") {
     val igor = new Orc()
+    val deeperImaginaryFriend = new Orc()
     val imaginaryFriend = new Orc()
     imaginaryFriend.name := "Mist"
-    igor.addProperty('immaginaryFriend, imaginaryFriend)
+    deeperImaginaryFriend.name := "Freud"
+    igor.addProperty('imaginaryFriend, imaginaryFriend)
+    imaginaryFriend.addProperty('deeperImaginaryFriend, deeperImaginaryFriend)
 
 
     var changedProp: Symbol = null
@@ -107,7 +110,7 @@ class PropertiesTest extends FunSuite {
     assert(changedProp === null)
     assert(deepChangedProp === null)
 
-    imaginaryFriend.hitPoints := 3
+    deeperImaginaryFriend.hitPoints := 3
 
     assert(changedProp === null)
     assert(deepChangedProp === 'hitPoints)
