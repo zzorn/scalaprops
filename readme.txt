@@ -25,7 +25,7 @@ New BSD license.
       val x        = property('x, 0.0) onChange redraw
       val y        = property('y, 0.0) onChange redraw
       val color    = property('color, "ff8800") require(_.size == 6)
-      val radius   = property('r, 10) translate(v => if (v < 1) 1 else v)
+      val radius   = property('r, 10) translate(v => if (v < 1) 1 else v) editor(new SliderFactory(1, 20))
       val diameter = property('diam, 0) bind(radius, r => r * 2)
 
       // property(...) can also be shortened to just p(...)
