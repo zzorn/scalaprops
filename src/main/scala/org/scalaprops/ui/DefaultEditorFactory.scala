@@ -24,7 +24,7 @@ object DefaultEditorFactory {
     if (classOf[Bean].isAssignableFrom(kind)) {
       // TODO: By default, do not nest child-beans
       //(new BeanEditorFactory()).apply(property.asInstanceOf[Property[Bean]]).asInstanceOf[Editor[T]]
-      (new NoEditorFactory()).apply(property.asInstanceOf[Property[T]]).asInstanceOf[Editor[T]]
+      (new NoEditorFactory[T]()).apply(property.asInstanceOf[Property[T]]).asInstanceOf[Editor[T]]
     }
     else {
       val wrappedKind = ClassUtils.nativeTypeToWrappedType(kind)
@@ -37,7 +37,7 @@ object DefaultEditorFactory {
         case LONG => (new LongEditorFactory).apply(property.asInstanceOf[Property[Long]])
         case FLOAT => (new FloatEditorFactory).apply(property.asInstanceOf[Property[Float]])
         case DOUBLE => (new DoubleEditorFactory).apply(property.asInstanceOf[Property[Double]])
-        case _ => (new NoEditorFactory()).apply(property.asInstanceOf[Property[T]]).asInstanceOf[Editor[T]]
+        case _ => (new NoEditorFactory[T]()).apply(property.asInstanceOf[Property[T]]).asInstanceOf[Editor[T]]
                   // (new ReadonlyFactory[T]()).apply(property.asInstanceOf[Property[T]])
       }
 

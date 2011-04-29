@@ -8,6 +8,10 @@ import org.scalaprops.parser.{JsonBeanParser, BeanParser}
 class PropertiesTest extends FunSuite {
 
 
+  class Bonus extends Bean {
+    val amount = p('amount, 0)
+  }
+
   class Orc extends Bean {
     var liveChangedCalled = false
     def liveChanged() { liveChangedCalled = true }
@@ -74,6 +78,44 @@ class PropertiesTest extends FunSuite {
     } catch {
       case e: IllegalArgumentException => // Success
     }
+  }
+
+  test("deepListeners") {
+    val igor = new Orc()
+    val imaginaryFriend = new Orc()
+    imaginaryFriend.name := "Mist"
+    igor.addProperty('immaginaryFriend, imaginaryFriend)
+
+
+    var changedProp: Symbol = null
+    var deepChangedProp: Symbol = null
+    igor.addListener(new BeanListener {
+      def onPropertyAdded(bean: Bean, property: Property[ _ ]) {}
+      def onPropertyRemoved(bean: Bean, property: Property[ _ ]) {}
+      def onPropertyChanged(bean: Bean, property: Property[ _ ]) {
+        changedProp = property.name
+      }
+    })
+    igor.addDeepListener(new BeanListener {
+      def onPropertyAdded(bean: Bean, property: Property[ _ ]) {}
+      def onPropertyRemoved(bean: Bean, property: Property[ _ ]) {}
+      def onPropertyChanged(bean: Bean, property: Property[ _ ]) {
+        deepChangedProp= property.name
+      }
+    })
+
+    assert(changedProp === null)
+    assert(deepChangedProp === null)
+
+    imaginaryFriend.hitPoints := 3
+
+    assert(changedProp === null)
+    assert(deepChangedProp === 'hitPoints)
+
+    igor.occupation := 'tester
+
+    assert(changedProp === 'occupation)
+    assert(deepChangedProp === 'occupation)
   }
 
   test("Getting all properties") {

@@ -28,6 +28,8 @@ class BeanEditor extends TitledPanel() with Editor[Bean] {
     def onPropertyRemoved(bean: Bean, property: Property[ _ ]) {
       removePropertyUi(property)
     }
+
+    def onPropertyChanged(bean: Bean, property: Property[ _ ]) {}
   }
 
   setLayout(new MigLayout("wrap 1, fillx, insets 0","[grow]","0[]0[]0"))

@@ -1,13 +1,13 @@
 package org.scalaprops
 
-import utils.ClassUtils
 import javax.swing.JSpinner.DefaultEditor
 import org.scalaprops.ui.{DefaultEditorFactory, EditorFactory, Editor}
+import utils.{CollectionUtils, ClassUtils}
 
 /**
  * Property implementation with listener, validation, and translation support.
  */
-class Property[T](val name: Symbol, initialValue: T)(implicit val kind: Manifest[T]) extends AbstractProperty[T] {
+class Property[T](val name: Symbol, initialValue: T, _bean: Bean, deepListener: BeanListener)(implicit val kind: Manifest[T]) extends AbstractProperty[T] {
 
   private val typeValidator: (T) => ValidationResult = {value: T =>
     if (value == null ||
@@ -17,7 +17,6 @@ class Property[T](val name: Symbol, initialValue: T)(implicit val kind: Manifest
                  "but got "+value.asInstanceOf[Object].getClass.getName+".")
   }
 
-  private var _value: T = initialValue
   private var validators: List[(T) => ValidationResult] = List( typeValidator )
   private var listeners: List[(T, T) => Unit] = Nil
   private var translators: List[T => T] = Nil
@@ -25,6 +24,8 @@ class Property[T](val name: Symbol, initialValue: T)(implicit val kind: Manifest
   private var _sourceProperty: Property[T] = null
   private var _boundListener: (T, T) => Unit = null
   private var _editorFactory: (Property[T]) => Editor[T] = null
+
+  private var _value: T = processValue(initialValue)
 
   /**
    * Returns the current value of the property.
@@ -37,17 +38,44 @@ class Property[T](val name: Symbol, initialValue: T)(implicit val kind: Manifest
    */
   def set(newValue: T) {
     if (_value != newValue) {
+
+      // Remove any deep listener from old value
+      removeDeepListener(_value)
+
       val oldValue = _value
 
-      var translatedVal = newValue
-      translators foreach (t => translatedVal = t(translatedVal))
-      validators foreach ( checkInvariant(_, translatedVal) )
+      // Translate, validate, and deep-listen to new value
+      _value = processValue(newValue)
 
-      _value = translatedVal
-
+      // Notify listeners
       listeners foreach ( _(oldValue, _value) )
+      deepListener.onPropertyChanged(bean, this)
     }
   }
+
+  /**
+   * Translate, validate, and deep-listen to a new value.
+   * Used both for the initial value and by the setter.
+   */
+  private def processValue(v: T): T = {
+    // Translate value
+    var translatedVal = v
+    translators foreach (t => translatedVal = t(translatedVal))
+
+    // Validate value
+    validators foreach ( checkInvariant(_, translatedVal) )
+
+    // Add deep listener to new value if it is of bean type
+    addDeepListener(translatedVal)
+
+    translatedVal
+  }
+
+
+  /**
+   * The bean that this property is member of.
+   */
+  def bean: Bean = _bean
 
   /**
    * Add a function that is used to process the value assigned to the property before it is assigned.
@@ -107,7 +135,7 @@ class Property[T](val name: Symbol, initialValue: T)(implicit val kind: Manifest
   /**
    * Removes the specified PropertyListeners.
    */
-  def removeListener(listener: (T, T) => Unit) { listeners = listeners.filterNot(_ == listener) }
+  def removeListener(listener: (T, T) => Unit) {listeners = CollectionUtils.removeOne(listener, listeners)}
 
   /**
    * Removes all PropertyListeners.
@@ -193,6 +221,15 @@ class Property[T](val name: Symbol, initialValue: T)(implicit val kind: Manifest
     else DefaultEditorFactory.createEditorFor(kind.erasure.asInstanceOf[Class[T]], this)
   }
 
+  /**
+   * Called when the property was removed from a bean.
+   * Stops listeners etc.
+   */
+  private[scalaprops] def onRemoved() {
+    removeDeepListener(_value)
+    unbind()
+  }
+
   private final def checkInvariant(validator: (T) => ValidationResult, value: T) {
     validator(value) match {
       case Success => // All ok
@@ -200,5 +237,20 @@ class Property[T](val name: Symbol, initialValue: T)(implicit val kind: Manifest
         throw new IllegalArgumentException("Value '"+value+"' not allowed for property "+name.name+": " + error)
     }
   }
+
+  private def removeDeepListener(v: T) {
+    if (v != null && v.isInstanceOf[ Bean ]) {
+      val beanValue = v.asInstanceOf[ Bean ]
+      beanValue.removeDeepListener(deepListener)
+    }
+  }
+
+  private def addDeepListener(v: T) {
+    if (v != null && classOf[Bean].isInstance(v)) {
+      val beanValue = v.asInstanceOf[ Bean ]
+      beanValue.addDeepListener(deepListener)
+    }
+  }
+
 
 }
