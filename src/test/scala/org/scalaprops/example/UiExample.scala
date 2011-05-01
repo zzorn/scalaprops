@@ -36,10 +36,8 @@ object UiExample {
 
     // Create several editors for the same bean to test multiple views and value change propagation.
     val p = new JPanel(new MigLayout())
-    val furbyEditor: BeanEditor[Furby] = foo.createEditor()
-    p.add(furbyEditor, "width 100%")
     p.add(foo.createEditor(), "width 100%")
-    p.add(foo.createEditor())
+    p.add(foo.createNestedEditor(), "width 100%")
 
     createFrame("Bean Editor Test", p)
   }

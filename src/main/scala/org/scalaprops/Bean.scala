@@ -1,7 +1,7 @@
 package org.scalaprops
 
 import collection.immutable.ListMap
-import org.scalaprops.ui.editors.BeanEditor
+import ui.editors.{NestedBeanEditor, BeanEditor}
 import utils.CollectionUtils
 
 /**
@@ -198,11 +198,28 @@ trait Bean {
     editor
   }
 
-  override def toString: String = {
+  /**
+   * Creates a UI that can be used to edit this bean,
+   * arranged into a tree that makes it easier to navigate child beans if there are many of them.
+   */
+  def createNestedEditor[T <: Bean](): NestedBeanEditor[T] = {
+    val editor = new NestedBeanEditor[T]()
+    editor.initForBean(this.asInstanceOf[T])
+    editor
+  }
+
+  override def toString: String = beanName.name
+
+  /**
+   * Prints a debug output of the bean, with the values of all the properties.
+   */
+  def toDebugString: String = {
     val sb = new StringBuilder()
     sb.append("{\n")
     properties.values foreach (p => {
-      sb.append(p.name).append(": ").append(p.value).append("\n")
+      val memberString = if(classOf[Bean].isInstance(p.value)) p.value.asInstanceOf[Bean].toDebugString
+                         else p.value
+      sb.append(p.name).append(": ").append(memberString).append("\n")
     })
     sb.append("}\n")
     sb.toString()

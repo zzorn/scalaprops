@@ -214,6 +214,11 @@ class Property[T](val name: Symbol, initialValue: T, _bean: Bean, deepListener: 
   def editor(editorFactory: (Property[T]) => Editor[T]): Property[T] = {_editorFactory = editorFactory; this}
 
   /**
+   * True if the property has some user defined editor.
+   */
+  def hasEditor: Boolean = _editorFactory != null
+
+  /**
    * Creates a new editor UI for this property.
    */
   def createEditor: Editor[T] = {
