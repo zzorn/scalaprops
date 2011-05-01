@@ -3,10 +3,11 @@ package org.scalaprops.ui.editors
 import org.scalaprops.ui.{EditorFactory, Editor}
 import org.scalaprops.ui.util.TitledPanel
 import javax.swing.{JPanel, JTree, JSplitPane}
-import javax.swing.tree.{TreePath, TreeModel}
 import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener, TreeModelListener}
 import java.awt.{Dimension, BorderLayout}
 import org.scalaprops.{Property, Bean}
+import javax.swing.tree.{DefaultTreeCellRenderer, TreeCellRenderer, TreePath, TreeModel}
+import java.util.HashMap
 
 class NestedBeanEditorFactory[T <: Bean] extends EditorFactory[T] {
   override def createEditorInstance: Editor[T] = new NestedBeanEditor[T]()
@@ -22,6 +23,22 @@ class NestedBeanEditor[T <: Bean] extends TitledPanel() with Editor[T] {
   var currentBeanEditor: BeanEditor[_] = null
   var beanSelector: JTree = null
 
+  // TODO: Kind of ugly hack, inprove later so that it holds up to structure changes
+  private var names: HashMap[Bean, String] = new HashMap[Bean, String]()
+
+  private def updateNames(root: Bean) {
+    if (root == null) names.clear()
+    else {
+      root.properties.values foreach {p =>
+        val child = asChildBean(p)
+        if (child != null) {
+          names.put(child, p.name.name)
+          updateNames(child)
+        }
+      }
+    }
+  }
+
   protected def onExternalValueChange(oldValue: T, newValue: T) {
     // TODO: Implement listener
     //if (oldValue != null) oldValue.removeListener(beanListener)
@@ -35,6 +52,7 @@ class NestedBeanEditor[T <: Bean] extends TitledPanel() with Editor[T] {
       // TODO: Implement listener
       //newValue.addListener(beanListener)
     }
+    updateNames(newValue)
   }
 
   protected def onInit(bean: T, name: String) {
@@ -46,6 +64,8 @@ class NestedBeanEditor[T <: Bean] extends TitledPanel() with Editor[T] {
       // TODO: Implement listener that reacts properly when properties are changed, added or removed
       //bean.addListener(beanListener)
     }
+
+    updateNames(bean)
   }
 
   /**
@@ -63,7 +83,22 @@ class NestedBeanEditor[T <: Bean] extends TitledPanel() with Editor[T] {
   private def buildUi(bean: T) {
     beanEditorPanel = new JPanel(new BorderLayout())
     beanEditorPanel.setPreferredSize(new Dimension(400, 500))
-    beanSelector = new JTree(createTreeModel)
+    beanSelector = new JTree(createTreeModel) {
+      override def convertValueToText(value: AnyRef,
+                                      selected: Boolean,
+                                      expanded: Boolean,
+                                      leaf: Boolean,
+                                      row: Int,
+                                      hasFocus: Boolean): String = {
+        
+        val bean = value.asInstanceOf[Bean]
+        if (bean == null) "null"
+        else {
+          val name = names.get(bean)
+          if (name == null) bean.toString else name
+        }
+      }
+    }
     beanSelector.setPreferredSize(new Dimension(300, 500))
     view = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, beanSelector, beanEditorPanel)
     view.setResizeWeight(0.3)
