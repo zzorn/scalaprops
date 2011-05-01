@@ -27,13 +27,15 @@ trait Editor[T] extends JComponent with TitledContainer {
    */
   private[scalaprops] final def init(property: Property[T]) {
     _property = property
-    _value = property.get
-    val name = property.name.name // TODO: Camel case to space separated
-    title = name
 
-    property.addListener(valueChanged)
-    
-    onInit(_value, name)
+    if (property != null) {
+      _value = property.get
+      property.addListener(valueChanged)
+      val name = property.name.name // TODO: Camel case to space separated
+      title = name
+    }
+
+    onInit(_value, title)
   }
 
   /**

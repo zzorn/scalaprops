@@ -47,6 +47,17 @@ class BeanEditor[T <: Bean] extends TitledPanel() with Editor[T] {
     }
   }
 
+  /**
+   * Initialized this editor.  Should be called only once.
+   */
+  private[scalaprops] final def initForBean(bean: T) {
+    // TODO: Camel case to space separated
+    title = bean.beanName.name
+
+    init(null)
+    valueChanged(null.asInstanceOf[T], bean)
+  }
+
   protected def onInit(bean: T, name: String) {
     title = name
 

@@ -24,7 +24,7 @@ object UiExample {
     val isEvil = p('isEvil, true).editor(new BoolEditorFactory())
     val lives = p('lives, 8).editor(new IntEditorFactory(min = 0, max=10, step =2))
     val size = p('size, 0.7f).editor(new FloatEditorFactory(min = 0f))
-    val powerUp = p('powerUp, new PowerUp())
+    val powerUp = p('powerUp, new PowerUp()).editor(new BeanEditorFactory())
     val activated = p('activated, false)
     val color = p('color, Color.RED)
     val awesomness = p('awesomness, 4.5).editor(SliderFactory(0.0, 5.0, restrictNumberFieldMax = false)).onValueChange({(o,n)=>  println("Value changed to " + n)})
@@ -32,11 +32,12 @@ object UiExample {
 
   def main(args: Array[ String ])
   {
-    val foo = new Furby()
+    val foo: Furby = new Furby()
 
     // Create several editors for the same bean to test multiple views and value change propagation.
     val p = new JPanel(new MigLayout())
-    p.add(foo.createEditor(), "width 100%")
+    val furbyEditor: BeanEditor[Furby] = foo.createEditor()
+    p.add(furbyEditor, "width 100%")
     p.add(foo.createEditor(), "width 100%")
     p.add(foo.createEditor())
 

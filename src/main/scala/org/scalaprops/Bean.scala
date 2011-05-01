@@ -192,10 +192,9 @@ trait Bean {
   /**
    * Creates a UI that can be used to edit this bean.
    */
-  def createEditor(): BeanEditor[Bean.this.type] = {
-    val editor = new BeanEditor[Bean.this.type]()
-    // TODO: A neater way to do this
-    editor.init(new Property[Bean.this.type](beanName, this, this, null))
+  def createEditor[T <: Bean](): BeanEditor[T] = {
+    val editor = new BeanEditor[T]()
+    editor.initForBean(this.asInstanceOf[T])
     editor
   }
 
