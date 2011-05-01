@@ -9,7 +9,8 @@ class PropertiesTest extends FunSuite {
 
 
   class Bonus extends Bean {
-    val amount = p('amount, 0)
+    val amount = p('amount, 1)
+    val kind = p('kind, "apples")
   }
 
   class Orc extends Bean {
@@ -20,6 +21,8 @@ class PropertiesTest extends FunSuite {
     val name       = p('name, "Igor") translate(n => "Mr. " + n)
     val surname    = p('surname, "Orc") require(!_.isEmpty, "Surname should not be empty")
     val hitPoints  = p('hitPoints, 100) require(_ >= 0) onValueChange{ (o: Int, n: Int) =>  listenerCalledWith = (o,n) }
+    val floating   = p('floating, 0.53f)
+    val bonus      = p('bonus, new Bonus)
     val alive      = p('alive, true) onChange liveChanged
     val occupation = p[Symbol]('occupation, null)
   }
@@ -181,11 +184,17 @@ class PropertiesTest extends FunSuite {
   test("Parse JSON like syntax") {
 
     val text = "{" +
-               "  beanType: Orc\n" +
+               "  beanType: Orc,\n" +
                "  smell: 0.56" +
-               "  \"hitPoints\": 98" +
-               "  name : \"Olaf\"\n" +
-               "  occupation: \"Warrior\"\n" +
+               "  \"hitPoints\": 98," +
+               "  \"floating\": 0.3" +
+               "  bonus: { " +
+               "     beanType: Bonus, "+
+               "     amount: 10  "+
+               "     kind: \"oranges\" "+
+               "  } " +
+               "  name : \"Olaf\",\n" +
+               "  occupation: \"Warrior\"\n," +
                "  alive:false " +
                "  \"badges\": [" +
                "     \"Elf Bashing\", \"Pig Farming\", \"Nose Picking\"" +
@@ -194,11 +203,15 @@ class PropertiesTest extends FunSuite {
 
     val parser: BeanParser = new JsonBeanParser()
     parser.beanFactory.registerBeanType('Orc, () => new Orc())
+    parser.beanFactory.registerBeanType('Bonus, () => new Bonus())
     val element: Bean = parser.parse(text, "test source")
 
     val orc: Orc = element.asInstanceOf[Orc]
     assert(orc.name() === "Mr. Olaf")
     assert(orc.hitPoints() === 98)
+    assert(orc.floating() === 0.3f)
+    assert(orc.bonus().amount() === 10)
+    assert(orc.bonus().kind() === "oranges")
     assert(orc.surname() === "Orc")
     assert(orc.occupation() === 'Warrior)
     assert(orc.get('badges, Nil).size === 3)
@@ -219,6 +232,12 @@ class PropertiesTest extends FunSuite {
   "name": "Igor",
   "surname": "Orc",
   "hitPoints": 100,
+  "floating": 0.53,
+  "bonus": {
+    "beanType": "Bonus",
+    "amount": 1,
+    "kind": "apples"
+  },
   "alive": true,
   "occupation": null,
   "badges": [
@@ -230,6 +249,12 @@ class PropertiesTest extends FunSuite {
     "name": "Igor",
     "surname": "Orc",
     "hitPoints": 100,
+    "floating": 0.53,
+    "bonus": {
+      "beanType": "Bonus",
+      "amount": 1,
+      "kind": "apples"
+    },
     "alive": true,
     "occupation": null
   }

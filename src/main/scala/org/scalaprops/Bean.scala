@@ -8,6 +8,12 @@ import utils.CollectionUtils
  * Base trait for classes that contain properties.
  * Provides factory method for creating properties, and a query function for returning added properties.
  */
+// TODO: Add save and load methods here
+// TODO: Add copy method
+// TODO: Add interpolate method
+// TODO: Add random variation method? (for genetic algos)
+// TODO: Add crossover / mix method (for genetic algos)
+// TODO: Add range modifier for numbers, have UI use it automatically, and validators check it
 trait Bean {
 
   private var _properties: Map[Symbol, Property[_]] = ListMap()
@@ -186,10 +192,10 @@ trait Bean {
   /**
    * Creates a UI that can be used to edit this bean.
    */
-  def createEditor: BeanEditor = {
-    val editor = new BeanEditor()
+  def createEditor(): BeanEditor[Bean.this.type] = {
+    val editor = new BeanEditor[Bean.this.type]()
     // TODO: A neater way to do this
-    editor.init(new Property[Bean](beanName, this, this, null))
+    editor.init(new Property[Bean.this.type](beanName, this, this, null))
     editor
   }
 

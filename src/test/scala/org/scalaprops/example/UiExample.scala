@@ -36,9 +36,9 @@ object UiExample {
 
     // Create several editors for the same bean to test multiple views and value change propagation.
     val p = new JPanel(new MigLayout())
-    p.add(foo.createEditor, "width 100%")
-    p.add(foo.createEditor, "width 100%")
-    p.add(foo.createEditor)
+    p.add(foo.createEditor(), "width 100%")
+    p.add(foo.createEditor(), "width 100%")
+    p.add(foo.createEditor())
 
     createFrame("Bean Editor Test", p)
   }
@@ -54,7 +54,7 @@ object UiExample {
     frame.setPreferredSize(new Dimension(800, 600))
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
     frame.getContentPane.add(panel)
-    frame.pack
+    frame.pack()
     frame.setVisible(true)
   }
 }

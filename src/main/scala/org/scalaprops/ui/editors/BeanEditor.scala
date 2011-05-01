@@ -7,14 +7,14 @@ import org.scalaprops.{Property, BeanListener, Bean}
 import java.awt.BorderLayout
 import org.scalaprops.ui.{EditorFactory, Editor}
 
-class BeanEditorFactory extends EditorFactory[Bean] {
+class BeanEditorFactory[T <: Bean] extends EditorFactory[T] {
   protected def createEditorInstance = new BeanEditor
 }
 
 /**
  * An UI for editing beans.
  */
-class BeanEditor extends TitledPanel() with Editor[Bean] {
+class BeanEditor[T <: Bean] extends TitledPanel() with Editor[T] {
 
   private var propertyEditors: List[Editor[_]] = Nil
 
@@ -34,7 +34,7 @@ class BeanEditor extends TitledPanel() with Editor[Bean] {
 
   setLayout(new MigLayout("wrap 1, fillx, insets 0","[grow]","0[]0[]0"))
 
-  protected def onExternalValueChange(oldValue: Bean, newValue: Bean) {
+  protected def onExternalValueChange(oldValue: T, newValue: T) {
     if (oldValue != null) oldValue.removeListener(beanListener)
 
     // Remove old UI
@@ -47,7 +47,7 @@ class BeanEditor extends TitledPanel() with Editor[Bean] {
     }
   }
 
-  protected def onInit(bean: Bean, name: String) {
+  protected def onInit(bean: T, name: String) {
     title = name
 
     if (bean != null) {
@@ -56,7 +56,7 @@ class BeanEditor extends TitledPanel() with Editor[Bean] {
     }
   }
 
-  private def buildUi(bean: Bean) {
+  private def buildUi(bean: T) {
     bean.properties.values foreach (p => addPropertyUi(p))
   }
 
@@ -69,14 +69,14 @@ class BeanEditor extends TitledPanel() with Editor[Bean] {
   private def removePropertyUi(property: Property[_]) {
     propertyEditors.find(_.property == property).foreach{editor =>
       remove(editor)
-      editor.deInit
+      editor.deInit()
       propertyEditors = propertyEditors.filterNot(_ == editor)
     }
   }
 
   private def removeUi() {
-    removeAll
-    propertyEditors.foreach(_.deInit)
+    removeAll()
+    propertyEditors.foreach(_.deInit())
   }
 
   override protected def onDeInit() {

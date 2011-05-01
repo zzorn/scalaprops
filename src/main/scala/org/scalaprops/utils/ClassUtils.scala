@@ -5,6 +5,8 @@ package org.scalaprops.utils
  */
 object ClassUtils {
 
+  // TODO: isAssignableFrom isn't the right one to use here..
+
   def tToDouble[T](v: T, c: Class[T], otherHandler: (T) => Double = {(t: T) => 0.0}): Double = {
     if (c.isAssignableFrom(classOf[Byte])) v.asInstanceOf[Byte].doubleValue
     else if (c.isAssignableFrom(classOf[Short])) v.asInstanceOf[Short].doubleValue

@@ -43,7 +43,15 @@ trait BeanParser {
         if (bean.contains(field)) {
           // Do any deserialization if needed:
           val kind = bean.properties(field).kind.erasure
-          value = serializers.deserialize(kind, value.toString)
+
+          if (value.isInstanceOf[Map[Symbol, AnyRef]]) {
+            // Create contained bean
+            value = createBean(value.asInstanceOf[Map[Symbol, AnyRef]])
+          }
+          else {
+            // De-serialize primitive values
+            value = serializers.deserialize(kind, value.toString)
+          }
 
           bean.set(field, value)
         }

@@ -18,7 +18,7 @@ class JsonBeanParser extends JavaTokenParsers with BeanParser {
     }
   }
 
-  private def obj: Parser[Map[Symbol, AnyRef]] = "{"~> repsep(member, opt(",")) <~"}" ^^ (Map() ++ _)
+  private def obj: Parser[Map[Symbol, AnyRef]] = "{"~> repsep(member, opt(",")) <~ "}" ^^ (Map() ++ _)
 
   private def arr: Parser[List[AnyRef]] = "["~> repsep(value, opt(",")) <~"]"
 
