@@ -14,7 +14,13 @@ import utils.CollectionUtils
 // TODO: Add random variation method? (for genetic algos)
 // TODO: Add crossover / mix method (for genetic algos)
 // TODO: Add range modifier for numbers, have UI use it automatically, and validators check it
+// TODO: Add implicit conversion from a property to the value encapsulated by it!
+// TODO: Some enum specification that scalaprops supports / understands (to get multiselect editor and serialization support)
+// TODO: Support for editors for lists of beans, where you can add new instances (by pasting, copying existing, or from a library). Also reorder support
+// TODO: Support lists of beans in treeview too?  And maps, sets?
 trait Bean {
+
+  implicit def propertyToValue[T](prop: Property[T]): T = prop.value
 
   private var _properties: Map[Symbol, Property[_]] = ListMap()
   private var _beanName: Symbol = Symbol(getClass.getSimpleName)
