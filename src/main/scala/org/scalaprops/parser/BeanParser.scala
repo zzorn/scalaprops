@@ -1,11 +1,10 @@
 package org.scalaprops.parser
 
 import scala.reflect.Manifest
-import java.io.{StringReader, Reader}
-import tools.nsc.io.File
 import org.scalaprops.serialization.{Serializers, StandardSerializers}
 import org.scalaprops.{BeanFactory, PropertyBean, Bean}
 import org.scalaprops.utils.ClassUtils
+import java.io.{FileReader, File, StringReader, Reader}
 
 /**
  * Something that can parse Property Beans.
@@ -31,7 +30,7 @@ trait BeanParser {
   def parse(text: String, sourceName: String): Bean = parse(new StringReader(text), sourceName)
 
   /** Parses the input file and returns a list of the beans found in it */
-  def parse(file: File): Bean = parse(file.reader, file.path)
+  def parse(file: File): Bean = parse(new FileReader(file), file.getPath)
 
   protected def createBean(propertyValues: Map[Symbol, AnyRef]): Bean = {
     val bean: Bean = if (propertyValues.contains(typePropertyName)) beanFactory.createBeanInstance(asSymbol(propertyValues(typePropertyName)))
