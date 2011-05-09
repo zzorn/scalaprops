@@ -100,6 +100,7 @@ class NestedBeanEditor[T <: Bean] extends TitledPanel() with Editor[T] {
       }
     }
     beanSelector.setPreferredSize(new Dimension(300, 500))
+    expandAll()
     view = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, beanSelector, beanEditorPanel)
     view.setResizeWeight(0.3)
     add(view, "width 100%, height 100%")
@@ -110,6 +111,28 @@ class NestedBeanEditor[T <: Bean] extends TitledPanel() with Editor[T] {
         updateBeanEditor(selectedBean)
       }
     })
+  }
+
+  /**
+   * Expands all nodes of the outline tree.
+   */
+  def expandAll() {
+    var row = 0
+    while (row < beanSelector.getRowCount) {
+        beanSelector.expandRow(row)
+        row += 1
+    }
+  }
+
+  /**
+   * Collapses all open nodes of the outline tree.
+   */
+  def collapseAll() {
+    var row = beanSelector.getRowCount - 1
+    while (row >= 0) {
+        beanSelector.collapseRow(row)
+        row -= 1
+    }
   }
 
   private def removeUi() {
