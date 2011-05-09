@@ -1,13 +1,13 @@
 package org.scalaprops.ui.editors
 
 import org.scalaprops.ui.{EditorFactory, Editor}
-import org.scalaprops.ui.util.TitledPanel
 import javax.swing.{JPanel, JTree, JSplitPane}
 import javax.swing.event.{TreeSelectionEvent, TreeSelectionListener, TreeModelListener}
 import java.awt.{Dimension, BorderLayout}
 import org.scalaprops.{Property, Bean}
 import javax.swing.tree.{DefaultTreeCellRenderer, TreeCellRenderer, TreePath, TreeModel}
 import java.util.HashMap
+import org.scalaprops.ui.util.{SwingUtils, TitledPanel}
 
 class NestedBeanEditorFactory[T <: Bean] extends EditorFactory[T] {
   override def createEditorInstance: Editor[T] = new NestedBeanEditor[T]()
@@ -117,22 +117,14 @@ class NestedBeanEditor[T <: Bean] extends TitledPanel() with Editor[T] {
    * Expands all nodes of the outline tree.
    */
   def expandAll() {
-    var row = 0
-    while (row < beanSelector.getRowCount) {
-        beanSelector.expandRow(row)
-        row += 1
-    }
+    SwingUtils.expandAll(beanSelector)
   }
 
   /**
    * Collapses all open nodes of the outline tree.
    */
   def collapseAll() {
-    var row = beanSelector.getRowCount - 1
-    while (row >= 0) {
-        beanSelector.collapseRow(row)
-        row -= 1
-    }
+    SwingUtils.collapseAll(beanSelector)
   }
 
   private def removeUi() {

@@ -13,7 +13,7 @@ class Library {
 
   private var listeners: List[LibraryListener] = Nil
 
-  val root: Category = new Category('Library, this)
+  val root: Category = new Category("Library", this)
 
   def defaultPath: TreePath = new TreePath(Array[AnyRef](root))
 
@@ -23,6 +23,8 @@ class Library {
   def notifyListeners(op: LibraryListener => Unit) {
     listeners foreach (l => op(l) )
   }
+
+  // TODO: Implement save?  Also remove deleted / renamed categories or beans?  Maybe not
 }
 
 object Library {
