@@ -8,7 +8,7 @@ import java.awt.{Rectangle, FlowLayout, Dimension}
 import java.awt.Container._
 import javax.swing.JComponent._
 import java.awt.Component._
-import org.scalaprops.library.{LibraryListener, Category, Library}
+import org.scalaprops.library.{LibraryListener, Library}
 import org.scalaprops.Bean
 import org.scalaprops.ui.util.SwingUtils
 import java.awt.event.{MouseEvent, MouseAdapter, ComponentAdapter}
@@ -30,19 +30,19 @@ class LibraryView(library: Library) extends JPanel(new MigLayout()) {
     val tree = new JTree(new TreeModel(){
       def addTreeModelListener(l: TreeModelListener) { categoryListeners ::= l }
       def removeTreeModelListener(l: TreeModelListener) { categoryListeners = categoryListeners filterNot ( _ == l)}
-      def getIndexOfChild(parent: Object, child: Object): Int =parent.asInstanceOf[Category].indexOf(child.asInstanceOf[Category])
+      def getIndexOfChild(parent: Object, child: Object): Int =parent.asInstanceOf[Library].indexOf(child.asInstanceOf[Library])
       def valueForPathChanged(path: TreePath, newValue: Object) {}
-      def isLeaf(node: Object) = node.asInstanceOf[Category].isLeafCategory
-      def getChildCount(parent: Object) = parent.asInstanceOf[Category].subcategoriesCount
-      def getChild(parent: Object, index: Int) = parent.asInstanceOf[Category].subCategoryAt(index)
-      def getRoot = library.root
+      def isLeaf(node: Object) = if (classOf[Library].isInstance(node)) node.asInstanceOf[Library].isLeafCategory else false
+      def getChildCount(parent: Object) = parent.asInstanceOf[Library].subcategoriesCount
+      def getChild(parent: Object, index: Int) = parent.asInstanceOf[Library].subCategoryAt(index)
+      def getRoot = library
     })
 
     // Configure the tree
     tree.setPreferredSize(new Dimension(300, 400))
     tree.setRootVisible(false)
     SwingUtils.expandAll(tree)
-    tree.setSelectionPath(library.defaultPath)
+    tree.setSelectionPath(new TreePath(library))
 
     // Listen to tree selections
     tree.addTreeSelectionListener(new TreeSelectionListener{
@@ -50,7 +50,7 @@ class LibraryView(library: Library) extends JPanel(new MigLayout()) {
         if (e.getNewLeadSelectionPath != null) {
           val selected = e.getNewLeadSelectionPath.getLastPathComponent
           if (selected != null) {
-            if (classOf[Category].isInstance(selected)) viewListeners.foreach(_.onCategorySelected(selected.asInstanceOf[Category]))
+            if (classOf[Library].isInstance(selected)) viewListeners.foreach(_.onCategorySelected(selected.asInstanceOf[Library]))
             if (classOf[Bean].isInstance(selected)) viewListeners.foreach(_.onBeanSelected(selected.asInstanceOf[Bean]))
           }
         }
@@ -64,7 +64,7 @@ class LibraryView(library: Library) extends JPanel(new MigLayout()) {
         if (e.isPopupTrigger && tree.getSelectionPath != null) {
           val selected = tree.getSelectionPath.getLastPathComponent
           if (selected != null) {
-            if (classOf[Category].isInstance(selected)) viewListeners.foreach(_.onCategoryContext(selected.asInstanceOf[Category]))
+            if (classOf[Library].isInstance(selected)) viewListeners.foreach(_.onCategoryContext(selected.asInstanceOf[Library]))
             if (classOf[Bean].isInstance(selected)) viewListeners.foreach(_.onBeanContext(selected.asInstanceOf[Bean]))
           }
         }
@@ -73,10 +73,11 @@ class LibraryView(library: Library) extends JPanel(new MigLayout()) {
 
     // Listen to changes to lib
     library.addLibraryListener(new LibraryListener {
-      def onCategoryAdded(category: Category) {notifyTreeChanged()}
-      def onCategoryRemoved(category: Category) {notifyTreeChanged()}
-      def onBeanRemoved(category: Category, bean: Bean) {}
-      def onBeanAdded(category: Category, bean: Bean) {}
+
+      def onCategoryRemoved(parentLibrary: Library, category: Library) {notifyTreeChanged()}
+      def onCategoryAdded(parentLibrary: Library, category: Library) {notifyTreeChanged()}
+      def onBeanRemoved(category: Library, bean: Bean) {}
+      def onBeanAdded(category: Library, bean: Bean) {}
     })
 
     tree
