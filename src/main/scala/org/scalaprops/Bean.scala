@@ -3,6 +3,7 @@ package org.scalaprops
 import collection.immutable.ListMap
 import ui.editors.{NestedBeanEditor, BeanEditor}
 import utils.CollectionUtils
+import org.scalaprops.Property
 
 /**
  * Base trait for classes that contain properties.
@@ -99,8 +100,12 @@ trait Bean {
   /**
    * Adds or updates the value of the property.
    */
-  def put[T](name: Symbol, value: T)(implicit m: Manifest[T]) = {
-    if (contains(name)) set(name, value)
+  def put[T](name: Symbol, value: T)(implicit m: Manifest[T]): Property[T] = {
+    if (contains(name)) {
+      val property = _properties(name).asInstanceOf[Property[T]]
+      property.set(value)
+      property
+    }
     else addProperty(name, value)
   }
 
@@ -194,6 +199,41 @@ trait Bean {
   def removeDeepListener(listener: BeanListener) {
     deepListeners  = CollectionUtils.removeOne(listener, deepListeners)
   }
+
+  /**
+   * Creates a new instance of this type of bean.  Just calls the default parameterless constructor by default.
+   * Used when creating copies of the bean.
+   * Override if the bean implementation doesn't have any parameterless constructor, or needs some special initialization.
+   */
+  def createNewInstance[T <: Bean](): T = getClass.newInstance().asInstanceOf[T]
+
+  /**
+   * Create a deep copy of this bean - any contained bean property values are also copied.
+   */
+  def deepCopy[T <: Bean](): T = {
+    copy({p: Property[_] =>
+      if (classOf[Bean].isInstance(p.value)) p.value.asInstanceOf[Bean].deepCopy()
+      else p.value
+    })
+  }
+
+  /**
+   * Create a copy of this bean.  By default does a shallow copy.
+   *
+   * valueFilter is used to get the value of each copied property if specified.
+   * it can be used to implement deep copies, see deepCopy.
+   */
+  def copy[T <: Bean](valueFilter: (Property[_]) => Any = {_.value}): T = {
+    val beanCopy: T = createNewInstance()
+
+    // Copy properties
+    _properties.values.foreach( {p =>
+      p.copyTo(beanCopy, valueFilter)
+    })
+
+    beanCopy
+  }
+
 
   /**
    * Creates a UI that can be used to edit this bean.

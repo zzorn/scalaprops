@@ -34,6 +34,6 @@ trait AbstractProperty[T] {
   /**
    * Set value of property.
    */
-  final def := (newValue: T) = set(newValue)
+  final def := (newValue: T) { set(newValue) }
 
 }
