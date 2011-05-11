@@ -7,7 +7,6 @@ import utils.{CollectionUtils, ClassUtils}
 /**
  * Property implementation with listener, validation, and translation support.
  */
-// TODO: Add description modifier
 class Property[T](val name: Symbol, initialValue: T, _bean: Bean, deepListener: BeanListener)(implicit val kind: Manifest[T]) extends AbstractProperty[T] {
 
   private val typeValidator: (T) => ValidationResult = {value: T =>
