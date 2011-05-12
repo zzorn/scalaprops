@@ -1,19 +1,22 @@
 package org.scalaprops.parser
 
 import java.io.Reader
-import org.scalaprops.Bean
 import scala.util.parsing.combinator.JavaTokenParsers
+import org.scalaprops.{BeanFactory, Bean}
+import org.scalaprops.serialization.Serializers
 
 /**
  * Parses property beans from Json files
  * (with optional string quoting for non-whitespace identifiers and comma separation between elements)
  */
-class JsonBeanParser extends JavaTokenParsers with BeanParser {
+object JsonBeanParser extends JavaTokenParsers with BeanParser {
 
-
-  def parse(reader: Reader, sourceName: String): Bean = {
+  def parse(reader: Reader,
+            sourceName: String,
+            beanFactory: BeanFactory,
+            serializers: Serializers): Bean = {
     parseAll(obj, reader) match {
-      case s: Success[Map[Symbol, AnyRef]] =>  createBean(s.result)
+      case s: Success[Map[Symbol, AnyRef]] =>  beanFactory.createBeanFromMap(s.result, serializers)
       case f: NoSuccess=> throw new ParseError(f.msg, f.next.pos, sourceName)
     }
   }

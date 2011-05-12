@@ -2,29 +2,30 @@ package org.scalaprops.exporter
 
 import java.io.Writer
 import org.scalaprops.{Property, Bean}
+import org.scalaprops.serialization.Serializers
 
 /**
  * Exports a bean in JSON format.
  */
-class JsonBeanExporter extends BeanExporter {
+object JsonBeanExporter extends BeanExporter {
 
-  def export(bean: Bean, writer: Writer) {
-    writeBean(0, bean, writer)
+  def export(bean: Bean, writer: Writer, serializers: Serializers) {
+    writeBean(0, bean, writer, serializers)
     writer.append("\n")
   }
 
-  private def writeBean(indent: Int, bean: Bean, writer: Writer) {
+  private def writeBean(indent: Int, bean: Bean, writer: Writer, serializers: Serializers) {
 
     def writeBeanProperty(name: Symbol, value: AnyRef, kind: Manifest[_]) {
       writer.append(spaces(indent + 1)).append("\"").append(name.name).append("\"").append(": ")
-      writeValue(indent + 1, writer, value, kind)
+      writeValue(indent + 1, writer, value, kind, serializers)
     }
 
     // Bean start
     writer.append("{\n")
 
     // Bean type name
-    writeBeanProperty(typePropertyName, bean.beanName.name, null)
+    writeBeanProperty(Bean.typePropertyName, bean.beanName.name, null)
     if (bean.properties.size > 0) writer.append(",")
     writer.append("\n")
 
@@ -37,11 +38,11 @@ class JsonBeanExporter extends BeanExporter {
     writer.append("\n").append(spaces(indent)).append("}")
   }
 
-  private def writeValue(indent: Int, writer: Writer, value: AnyRef, kind: Manifest[_]) {
+  private def writeValue(indent: Int, writer: Writer, value: AnyRef, kind: Manifest[_], serializers: Serializers) {
     if (value == null) writer.append("null")
     else if (value.isInstanceOf[Bean]) {
       // Check if it is a bean
-      writeBean(indent, value.asInstanceOf[Bean], writer)
+      writeBean(indent, value.asInstanceOf[Bean], writer, serializers)
     }
     else if (value.isInstanceOf[List[_]]) {
       // Get list element type
@@ -52,7 +53,7 @@ class JsonBeanExporter extends BeanExporter {
       writer.append("[\n")
       foreachWithSeparator(value.asInstanceOf[List[_]], () => writer.append(",\n")){ e =>
         writer.append(spaces(indent + 1))
-        writeValue(indent + 1, writer, e.asInstanceOf[AnyRef], elementType)
+        writeValue(indent + 1, writer, e.asInstanceOf[AnyRef], elementType, serializers)
       }
       writer.append("\n")
       writer.append(spaces(indent)).append("]")

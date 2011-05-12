@@ -4,9 +4,10 @@ import javax.swing.tree.TreePath
 import java.io.File
 import org.scalaprops.parser.{ParseError, BeanParser}
 import java.util.logging.Logger
-import org.scalaprops.Bean
 import java.util.ArrayList
 import collection.JavaConversions._
+import org.scalaprops.serialization.Serializers
+import org.scalaprops.{BeanFactory, Bean}
 
 /**
  * A library containing beans organized into hierarchical categories.
@@ -110,16 +111,18 @@ object Library {
    */
   def load(nameForLibrary: String,
            rootDirectory: File,
-           parser: BeanParser,
            filePattern: (File) => Boolean = {f => f.getName.endsWith(".json")},
-           directoryPattern: (File) => Boolean = {f => true} ): Library = {
+           directoryPattern: (File) => Boolean = {f => true},
+           parser: BeanParser = Bean.defaultParser,
+           beanFactory: BeanFactory = Bean.defaultBeanFactory,
+           serializers: Serializers = Bean.defaultSerializers): Library = {
 
     def loadDirectory(dir: File, category: Library) {
       dir.listFiles foreach {f: File =>
         if (f.isFile && filePattern(f)) {
           // Load bean
           try {
-            val bean = parser.parse(f)
+            val bean = Bean.loadFromFile(f, parser, beanFactory, serializers)
             category.addBean(bean)
           } catch {
             case e: ParseError => log.warning("Could not load file '" + f.getName + "' into library, error when parsing it: "+ e.getMessage)

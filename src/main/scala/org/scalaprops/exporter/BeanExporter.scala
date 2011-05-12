@@ -10,22 +10,9 @@ import org.scalaprops.serialization.{StandardSerializers, Serializers}
  */
 trait BeanExporter {
 
-  /** The property name for fields that indicate what kind of bean the object they are in should be deserialized to. */
-  var typePropertyName = 'beanType
-
-  /** Serializers used to parse and write property values of various types */
-  var serializers: Serializers = new StandardSerializers
-
-  def export(bean: Bean, writer: Writer)
-
-  def exportAsString(bean: Bean): String = {
-    val stringWriter: StringWriter = new StringWriter()
-    export(bean, stringWriter)
-    stringWriter.toString
-  }
-
-  def export(bean: Bean, file: File, append: Boolean = false) {
-    export(bean, new BufferedWriter(file.writer(append)))
-  }
+  /**
+   * Write the bean to the specified writer.
+   */
+  def export(bean: Bean, writer: Writer, serializers: Serializers)
 
 }

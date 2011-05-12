@@ -1,15 +1,20 @@
 package org.scalaprops
 
 import collection.immutable.ListMap
+import exporter.{JsonBeanExporter, BeanExporter}
+import parser.{JsonBeanParser, BeanParser}
+import serialization.{ValueSerializer, StandardSerializers, Serializers}
 import ui.editors.{NestedBeanEditor, BeanEditor}
-import utils.CollectionUtils
 import org.scalaprops.Property
+import java.io._
+import utils.{ClassUtils, CollectionUtils}
+import collection.immutable.Map._
+
 
 /**
  * Base trait for classes that contain properties.
  * Provides factory method for creating properties, and a query function for returning added properties.
  */
-// TODO: Add save and load methods here
 // TODO: Add interpolate method
 // TODO: Add random variation method? (for genetic algos)
 // TODO: Add crossover / mix method (for genetic algos)
@@ -235,6 +240,61 @@ trait Bean {
 
 
   /**
+   * Saves this bean to the specified filename.
+   * Uses the provided bean exporter, or a JSON -format exporter by default.
+   */
+  def saveToFileNamed(outputFileName: String,
+           exporter: BeanExporter = Bean.defaultExporter,
+           serializers: Serializers = Bean.defaultSerializers) {
+    saveToFile(new File(outputFileName), exporter, serializers)
+  }
+
+  /**
+   * Saves this bean to the specified file.
+   * Uses the provided bean exporter, or a JSON -format exporter by default.
+   */
+  def saveToFile(outputFile: File,
+           exporter: BeanExporter = Bean.defaultExporter,
+           serializers: Serializers = Bean.defaultSerializers) {
+    val outputStream: FileOutputStream = new FileOutputStream(outputFile)
+    saveToStream(outputStream, exporter, serializers)
+    outputStream.close()
+  }
+
+  /**
+   * Saves this bean to the specified stream.
+   * Uses the provided bean exporter, or a JSON -format exporter by default.
+   */
+  def saveToStream(outputStream: OutputStream,
+           exporter: BeanExporter = Bean.defaultExporter,
+           serializers: Serializers = Bean.defaultSerializers) {
+    saveToWriter(new OutputStreamWriter(outputStream), exporter, serializers)
+  }
+
+  /**
+   * Serializes this bean to a string.
+   * Uses the provided bean exporter, or a JSON -format exporter by default.
+   */
+  def saveToString(exporter: BeanExporter = Bean.defaultExporter,
+                   serializers: Serializers = Bean.defaultSerializers): String = {
+    val stringWriter: StringWriter = new StringWriter()
+    saveToWriter(stringWriter, exporter, serializers)
+    stringWriter.toString
+  }
+
+  /**
+   * Saves this bean to the specified writer.
+   * Uses the provided bean exporter, or a JSON -format exporter by default.
+   */
+  def saveToWriter(writer: Writer,
+           exporter: BeanExporter = Bean.defaultExporter,
+           serializers: Serializers = Bean.defaultSerializers) {
+    val bufferedWriter: BufferedWriter = new BufferedWriter(writer)
+    exporter.export(this, bufferedWriter, serializers)
+    bufferedWriter.flush()
+  }
+
+  /**
    * Creates a UI that can be used to edit this bean.
    */
   def createEditor[T <: Bean](): BeanEditor[T] = {
@@ -274,3 +334,143 @@ trait Bean {
   private def onPropertyRemoved(property: Property[_]) {listeners foreach (_.onPropertyRemoved(this, property))}
 
 }
+
+object Bean {
+
+  /**
+   * Factory used to create bean instances.
+   */
+  var defaultBeanFactory = new BeanFactory()
+
+  /**
+   * Serializers used to parse and write property values of various types.
+   */
+  var defaultSerializers = new StandardSerializers
+
+  /**
+   * The exporter to use to serialize beans when saving them, if no other exporter is specified.
+   * Uses a JSON format exporter by default.
+   */
+  var defaultExporter: BeanExporter = JsonBeanExporter
+
+  /**
+   * The parser to use to deserialize beans when loading them, if no other parser is specified.
+   * Uses a JSON format parser by default.
+   */
+  var defaultParser: BeanParser = JsonBeanParser
+
+  /** The property name for fields that indicate what kind of bean the object they are in should be deserialized to. */
+  // TODO: Move this to serializers class or similar to remove global effect of this variable.
+  var typePropertyName = 'beanType
+
+  /**
+   * Register a type of bean that will be accepted by default when parsing beans, e.g. when loading them.
+   *
+   * By default loaded beans will be instances of PropertyBean, but typically you want the values to be loaded
+   * back into your own custom bean implementations.  However, only whitelisted classes should be allowed to be instantiated
+   * when reading potentially user-defined datafiles, so you'll have to register the types of beans that can be instantiated
+   * with this method first, or by passing them in to the corresponding load method.
+   */
+  def registerAcceptedBeanType[T <: Bean](acceptedBeanType: Class[T]) {
+    require(acceptedBeanType != null, "bean type can not be null")
+
+    defaultBeanFactory.registerBeanType(acceptedBeanType)
+  }
+
+  /**
+   * Register several accepted bean types.
+   */
+  def registerAcceptedBeanTypes[T <: Bean](acceptedBeanTypes: Seq[Class[T]]) {
+    defaultBeanFactory.registerBeanTypes(acceptedBeanTypes)
+  }
+
+  /**
+   * Register a serializer and deserializer for some specified type.
+   */
+  def registerSerializer[T <: AnyRef](serialize: T => String, deserialize: String  => T)(implicit kind: Manifest[T]) {
+    defaultSerializers.registerSerializer(serialize, deserialize)(kind)
+  }
+
+  /**
+   * Load the bean stored in the named file.
+   * Uses the specified bean parser, or a JSON-format parser by default.
+   * Uses the specified BeanFactory if specified, otherwise the default one where bean types can be registered with the registerBeanType -methods.
+   * Throws ParseError if there was some problem reading or parsing the input.
+   */
+  def loadFromFileNamed(inputFileName: String,
+           parser: BeanParser = defaultParser,
+           beanFactory: BeanFactory = defaultBeanFactory,
+           serializers: Serializers = defaultSerializers): Bean = {
+
+    loadFromFile(new File(inputFileName), parser, beanFactory, serializers)
+  }
+
+  /**
+   * Load the bean stored in the specified file.
+   * Uses the specified bean parser, or a JSON-format parser by default.
+   * Uses the specified BeanFactory if specified, otherwise the default one where bean types can be registered with the registerBeanType -methods.
+   * Throws ParseError if there was some problem reading or parsing the input.
+   */
+  def loadFromFile(inputFile: File,
+           parser: BeanParser = defaultParser,
+           beanFactory: BeanFactory = defaultBeanFactory,
+           serializers: Serializers = defaultSerializers): Bean = {
+
+    val inputStream: FileInputStream = new FileInputStream(inputFile)
+    val bean = loadFromStream(inputStream, inputFile.getName, parser, beanFactory, serializers)
+    inputStream.close()
+    bean
+  }
+
+  /**
+   * Load the bean stored in the specified stream.
+   * sourceName is a name for the origin of the stream, used in error messages and such.
+   * Uses the specified bean parser, or a JSON-format parser by default.
+   * Uses the specified BeanFactory if specified, otherwise the default one where bean types can be registered with the registerBeanType -methods.
+   * Throws ParseError if there was some problem reading or parsing the input.
+   */
+  def loadFromStream(inputStream: InputStream,
+           sourceName: String,
+           parser: BeanParser = defaultParser,
+           beanFactory: BeanFactory = defaultBeanFactory,
+           serializers: Serializers = defaultSerializers): Bean = {
+
+    loadFromReader(new InputStreamReader(inputStream), sourceName, parser, beanFactory, serializers)
+  }
+
+  /**
+   * Load the bean stored in the specified string.
+   * sourceName is a name for the origin of the reader, used in error messages and such.
+   * Uses the specified bean parser, or a JSON-format parser by default.
+   * Uses the specified BeanFactory if specified, otherwise the default one where bean types can be registered with the registerBeanType -methods.
+   * Throws ParseError if there was some problem reading or parsing the input.
+   */
+  def loadFromString(text: String,
+           sourceName: String,
+           parser: BeanParser = defaultParser,
+           beanFactory: BeanFactory = defaultBeanFactory,
+           serializers: Serializers = defaultSerializers): Bean = {
+
+    loadFromReader(new StringReader(text), sourceName, parser, beanFactory, serializers)
+  }
+
+  /**
+   * Load the bean stored in the specified reader.
+   * sourceName is a name for the origin of the reader, used in error messages and such.
+   * Uses the specified bean parser, or a JSON-format parser by default.
+   * Uses the specified BeanFactory if specified, otherwise the default one where bean types can be registered with the registerBeanType -methods.
+   * Throws ParseError if there was some problem reading or parsing the input.
+   */
+  def loadFromReader(reader: Reader,
+           sourceName: String,
+           parser: BeanParser = defaultParser,
+           beanFactory: BeanFactory = defaultBeanFactory,
+           serializers: Serializers = defaultSerializers): Bean = {
+
+    parser.parse(new BufferedReader(reader), sourceName, beanFactory, serializers)
+  }
+
+
+
+}
+

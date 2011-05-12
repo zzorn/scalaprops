@@ -201,10 +201,10 @@ class PropertiesTest extends FunSuite {
                "   ]" +
                "}"
 
-    val parser: BeanParser = new JsonBeanParser()
-    parser.beanFactory.registerBeanType('Orc, () => new Orc())
-    parser.beanFactory.registerBeanType('Bonus, () => new Bonus())
-    val element: Bean = parser.parse(text, "test source")
+    val factory = new BeanFactory
+    factory.registerBeanType('Orc, () => new Orc())
+    factory.registerBeanType('Bonus, () => new Bonus())
+    val element: Bean = Bean.loadFromString(text, "test source", beanFactory = factory)
 
     val orc: Orc = element.asInstanceOf[Orc]
     assert(orc.name() === "Mr. Olaf")
@@ -223,8 +223,7 @@ class PropertiesTest extends FunSuite {
     bean.addProperty('badges, List("Funny Hat", "Wooden Stick"))
     bean.addProperty(Symbol("Imaginary Friend"), new Orc())
 
-    val exporter: BeanExporter = new JsonBeanExporter()
-    val exported = exporter.exportAsString(bean)
+    val exported = bean.saveToString()
 
     val expected =
 """{
