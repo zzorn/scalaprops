@@ -12,6 +12,7 @@ import org.scalaprops.{BeanFactory, Bean}
 /**
  * A library containing beans organized into hierarchical categories.
  */
+// TODO: Make library a bean with a list property with the child categories and child beans, and a special flag indicating to render it as a library category?
 class Library(val name: String) {
 
   // Use java array lists to get fast access by index

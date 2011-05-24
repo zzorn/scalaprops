@@ -79,6 +79,9 @@ class BeanEditor[T <: Bean] extends TitledPanel() with Editor[T] {
       def getScrollableUnitIncrement(visibleRect: Rectangle, orientation: Int, direction: Int) = 30
       def getPreferredScrollableViewportSize = getPreferredSize
     }
+
+    mainPanel.addMouseListener(bean.createContextMenuOpener())
+
     mainPanel.setLayout(new MigLayout("wrap 1, fillx, insets 0","[grow]","0[]0[]0"))
     scrollPane = new JScrollPane(mainPanel,
                                  ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,

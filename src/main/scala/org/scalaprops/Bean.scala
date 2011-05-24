@@ -9,20 +9,22 @@ import org.scalaprops.Property
 import java.io._
 import utils.{ClassUtils, CollectionUtils}
 import collection.immutable.Map._
-
+import javax.swing.{AbstractAction, Action, JMenuItem, JPopupMenu}
+import java.awt.event.{MouseEvent, MouseListener, MouseAdapter, ActionEvent}
 
 /**
  * Base trait for classes that contain properties.
  * Provides factory method for creating properties, and a query function for returning added properties.
  */
+// TODO: Support for editors for lists of beans, where you can add new instances (by pasting, copying existing, or from a library). Also reorder support
+// TODO: Support lists of beans in treeview too?  And maps, sets?
+// TODO: Add range modifier for numbers, have UI use it automatically, and validators check it
+// TODO: Some enum specification that scalaprops supports / understands (to get multiselect editor and serialization support)
+// TODO: Handle de-selection of any element in a tree view
+
 // TODO: Add interpolate method
 // TODO: Add random variation method? (for genetic algos)
 // TODO: Add crossover / mix method (for genetic algos)
-// TODO: Add range modifier for numbers, have UI use it automatically, and validators check it
-// TODO: Some enum specification that scalaprops supports / understands (to get multiselect editor and serialization support)
-// TODO: Support for editors for lists of beans, where you can add new instances (by pasting, copying existing, or from a library). Also reorder support
-// TODO: Support lists of beans in treeview too?  And maps, sets?
-// TODO: Handle de-selection of any element in a tree view
 trait Bean {
 
   implicit def propertyToValue[T](prop: Property[T]): T = prop.value
@@ -214,9 +216,10 @@ trait Bean {
   /**
    * Create a deep copy of this bean - any contained bean property values are also copied.
    */
-  def deepCopy[T <: Bean](): T = {
+  // TODO: How to handle references to group parameters?  Specify handling policy as parameter?  Leave placeholders?  Create new parameters? <- sounds good.
+  def copyNested[T <: Bean](): T = {
     copy({p: Property[_] =>
-      if (classOf[Bean].isInstance(p.value)) p.value.asInstanceOf[Bean].deepCopy()
+      if (classOf[Bean].isInstance(p.value)) p.value.asInstanceOf[Bean].copyNested()
       else p.value
     })
   }
@@ -227,6 +230,7 @@ trait Bean {
    * valueFilter is used to get the value of each copied property if specified.
    * it can be used to implement deep copies, see deepCopy.
    */
+  // TODO: How to handle references to group parameters?  Specify handling policy as parameter?  Leave placeholders?  Create new parameters? <- sounds good.
   def copy[T <: Bean](valueFilter: (Property[_]) => Any = {_.value}): T = {
     val beanCopy: T = createNewInstance()
 
@@ -311,6 +315,99 @@ trait Bean {
     val editor = new NestedBeanEditor[T]()
     editor.initForBean(this.asInstanceOf[T])
     editor
+  }
+
+  /**
+   * Creates a context menu with actions available for this bean.
+   */
+  def contextMenu(): JPopupMenu = {
+    val menu = new JPopupMenu()
+
+    val actions = contextActions
+
+    actions foreach {a =>
+      if (a == null) menu.addSeparator()
+      else menu.add(new JMenuItem(a))
+    }
+
+    menu
+  }
+
+  /**
+   * A mouse listener that takes care of opening the popup menu for this bean.
+   */
+  def createContextMenuOpener(): MouseListener = new MouseAdapter {
+    private val popup = Bean.this.contextMenu()
+
+    override def mouseReleased(e: MouseEvent) { handleEvent(e) }
+    override def mousePressed(e: MouseEvent) { handleEvent(e) }
+
+    private def handleEvent(e: MouseEvent) {
+      if (e.isPopupTrigger) {
+        popup.show(e.getComponent, e.getX, e.getY)
+      }
+    }
+  }
+
+  protected def contextActions: List[Action] = {
+    var actions: List[Action] = Nil
+
+    def addAction(name: String, action: (Bean) => Unit) {
+      actions ::= new AbstractAction(name) {
+        def actionPerformed(e: ActionEvent) {
+          action(Bean.this)
+        }
+      }
+
+    }
+
+    def addSeparator() {
+      actions ::= null
+    }
+
+    // Cut
+    addAction("Cut", {
+      BeanClipboard.copyToClipboard _
+      // TODO: Replace this in parent with default placeholder
+    } )
+
+    // Copy
+    addAction("Copy", BeanClipboard.copyToClipboard _ )
+
+    // Paste / replace over
+    // Get parent
+    // Replace this in parent with clipboard content
+
+    // Paste / replace after
+    // Get parent
+    // Replace this in parent with clipboard content where default input is replaced with this
+
+    // Delete (replace with what?)
+    // Get parent
+    // Replace this in parent with default placeholder
+
+    addSeparator()
+
+    // Group
+    // Get parent
+    // Crate a group from this bean (and all contained / nested beans).  Handle parameters.
+    // Replace this in parent with  the group
+
+    // Ungroup
+    // if this is a group, replace it in the parent with its content.  Handle parameter references.
+
+    addSeparator()
+
+    // Save
+    // Open save dialog
+
+    // Load from
+    // Open load dialog
+    // Replace this in parent with loaded content.
+
+    addSeparator()
+
+    actions.reverse
   }
 
   override def toString: String = beanName.name
