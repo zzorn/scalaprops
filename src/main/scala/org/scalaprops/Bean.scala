@@ -374,6 +374,9 @@ trait Bean {
     // Copy
     addAction("Copy", BeanClipboard.copyToClipboard _ )
 
+    // TODO: Have containing bean provide some part of the context menu, e.g. the cut, copy, paste
+    // That way non-bean types can be supported also, and beans can be replicated in many different parent beans without problems.
+
     // Paste / replace over
     // Get parent
     // Replace this in parent with clipboard content
