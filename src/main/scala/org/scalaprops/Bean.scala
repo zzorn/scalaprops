@@ -30,7 +30,7 @@ trait Bean {
   implicit def propertyToValue[T](prop: Property[T]): T = prop.value
 
   private var _properties: Map[Symbol, Property[_]] = ListMap()
-  private var _beanName: Symbol = Symbol(getClass.getSimpleName)
+  private var _beanType: Symbol = Symbol(getClass.getSimpleName)
   private var listeners: List[BeanListener] = Nil
   private var deepListeners: List[BeanListener] = Nil
 
@@ -49,9 +49,9 @@ trait Bean {
   }
 
 
-  def beanName: Symbol = _beanName
+  def beanType: Symbol = _beanType
 
-  def beanName_=(name: Symbol) { _beanName = name }
+  def beanType_=(typeName: Symbol) { _beanType = typeName }
 
   /**
    * Adds a property to the bean and returns the property,
@@ -94,7 +94,7 @@ trait Bean {
    * Set value for property, throws exception if property doesn't exist.
    */
   def set[T](propertyName: Symbol, value: T) {
-    if (!_properties.contains(propertyName)) throw new IllegalArgumentException("Can not set property "+propertyName.name+" for "+beanName+", the property has not beed added.")
+    if (!_properties.contains(propertyName)) throw new IllegalArgumentException("Can not set property "+propertyName.name+" for "+beanType+", the property has not beed added.")
     _properties(propertyName).asInstanceOf[Property[T]] := value
   }
 
@@ -413,7 +413,7 @@ trait Bean {
     actions.reverse
   }
 
-  override def toString: String = beanName.name
+  override def toString: String = beanType.name
 
   /**
    * Prints a debug output of the bean, with the values of all the properties.

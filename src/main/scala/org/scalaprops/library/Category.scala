@@ -13,20 +13,20 @@ import org.scalaprops.{BeanFactory, Bean}
  * A library containing beans organized into hierarchical categories.
  */
 // TODO: Make library a bean with a list property with the child categories and child beans, and a special flag indicating to render it as a library category?
-class Library(val name: String) {
+class Category extends Bean {
 
   // Use java array lists to get fast access by index
-  private val _subCategories: ArrayList[Library] = new ArrayList()
+  private val _subCategories: ArrayList[Category] = new ArrayList()
   private var _components: ArrayList[Bean] = new ArrayList()
-  private var listeners: List[LibraryListener] = Nil
-  private var _parent: Library = null
+  private var listeners: List[CategoryListener] = Nil
+  private var _parent: Category = null
 
   def beans: List[Bean] = _components.toList
-  def categories: List[Library] = _subCategories.toList
+  def categories: List[Category] = _subCategories.toList
 
-  def parent: Library = _parent
+  def parent: Category = _parent
 
-  def root: Library = if (parent != null) parent.root else this
+  def root: Category = if (parent != null) parent.root else this
 
   def addBean(bean: Bean) {
     require(bean != null)
@@ -44,18 +44,18 @@ class Library(val name: String) {
     }
   }
 
-  def addCategory(name: String): Library = {
+  def addCategory(name: String): Category = {
     require(name != null, "Name should not be null")
     require(!_subCategories.exists(c => c.name == name), "A category with the same name already exists")
 
-    val subLibrary: Library = new Library(name)
+    val subLibrary: Category = new Category(name)
 
     addCategory(subLibrary)
 
     subLibrary
   }
 
-  def addCategory(category: Library) {
+  def addCategory(category: Category) {
     require(category != null, "Category should not be null")
     require(!_subCategories.contains(category), "The category was already added")
 
@@ -68,7 +68,7 @@ class Library(val name: String) {
     notifyListeners(l => l.onCategoryAdded(this, category))
   }
 
-  def removeCategory(category: Library) {
+  def removeCategory(category: Category) {
     if (category != null && _subCategories.contains(category)) {
       _subCategories.remove(category)
       category._parent = null
@@ -78,16 +78,16 @@ class Library(val name: String) {
 
   def isLeafCategory = _subCategories.isEmpty
   def subcategoriesCount: Int = _subCategories.size
-  def indexOf(subCategory: Library): Int = _subCategories.indexOf(subCategory)
-  def subCategoryAt(index: Int): Library = if (index < 0 || index >= subcategoriesCount) null else _subCategories(index)
+  def indexOf(subCategory: Category): Int = _subCategories.indexOf(subCategory)
+  def subCategoryAt(index: Int): Category = if (index < 0 || index >= subcategoriesCount) null else _subCategories(index)
 
   override def toString = name
 
 
-  def addLibraryListener(l: LibraryListener) {listeners ::= l}
-  def removeLibraryListener(l: LibraryListener) {listeners = listeners filterNot(_ == l)}
+  def addLibraryListener(l: CategoryListener) {listeners ::= l}
+  def removeLibraryListener(l: CategoryListener) {listeners = listeners filterNot(_ == l)}
 
-  private def notifyListeners(op: LibraryListener => Unit) {
+  private def notifyListeners(op: CategoryListener => Unit) {
     listeners foreach (l => op(l) )
 
     // Notify parent listeners also
@@ -101,9 +101,9 @@ class Library(val name: String) {
 
 
 
-object Library {
+object Category {
 
-  private val log = Logger.getLogger(Library.getClass.getName)
+  private val log = Logger.getLogger(Category.getClass.getName)
 
   // TODO: Implement load from json file / stream
 
@@ -116,9 +116,9 @@ object Library {
            directoryPattern: (File) => Boolean = {f => true},
            parser: BeanParser = Bean.defaultParser,
            beanFactory: BeanFactory = Bean.defaultBeanFactory,
-           serializers: Serializers = Bean.defaultSerializers): Library = {
+           serializers: Serializers = Bean.defaultSerializers): Category = {
 
-    def loadDirectory(dir: File, category: Library) {
+    def loadDirectory(dir: File, category: Category) {
       dir.listFiles foreach {f: File =>
         if (f.isFile && filePattern(f)) {
           // Load bean
@@ -137,7 +137,7 @@ object Library {
       }
     }
 
-    val library = new Library(nameForLibrary)
+    val library = new Category(nameForLibrary)
     loadDirectory(rootDirectory, library)
     library
   }

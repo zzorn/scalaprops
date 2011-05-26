@@ -73,7 +73,7 @@ class NestedBeanEditor[T <: Bean] extends TitledPanel() with Editor[T] {
    */
   private[scalaprops] final def initForBean(bean: T) {
     // TODO: Camel case to space separated
-    title = bean.beanName.name
+    title = bean.beanType.name
 
     init(null)
     valueChanged(null.asInstanceOf[T], bean)

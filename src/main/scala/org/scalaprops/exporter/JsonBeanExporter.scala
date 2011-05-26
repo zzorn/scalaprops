@@ -25,7 +25,7 @@ object JsonBeanExporter extends BeanExporter {
     writer.append("{\n")
 
     // Bean type name
-    writeBeanProperty(Bean.typePropertyName, bean.beanName.name, null)
+    writeBeanProperty(Bean.typePropertyName, bean.beanType.name, null)
     if (bean.properties.size > 0) writer.append(",")
     writer.append("\n")
 

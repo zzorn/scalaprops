@@ -1,6 +1,6 @@
 package org.scalaprops.ui.library
 
-import org.scalaprops.library.Library
+import org.scalaprops.library.Category
 import org.scalaprops.Bean
 
 /**
@@ -8,11 +8,11 @@ import org.scalaprops.Bean
  */
 trait LibraryViewListener {
 
-  def onCategorySelected(category: Library)
+  def onCategorySelected(category: Category)
   def onBeanSelected(bean: Bean)
 
   /** Called when the context menu is invoked for a category (e.g. by right click)*/
-  def onCategoryContext(category: Library)
+  def onCategoryContext(category: Category)
 
   /** Called when the context menu is invoked for a bean (e.g. by right click)*/
   def onBeanContext(bean: Bean)
