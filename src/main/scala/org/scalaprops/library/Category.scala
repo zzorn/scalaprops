@@ -16,13 +16,15 @@ import org.scalaprops.{BeanFactory, Bean}
 class Category extends Bean {
 
   // Use java array lists to get fast access by index
-  private val _subCategories: ArrayList[Category] = new ArrayList()
-  private var _components: ArrayList[Bean] = new ArrayList()
+//  private val _subCategories: ArrayList[Category] = new ArrayList()
+//  private var _components: ArrayList[Bean] = new ArrayList()
   private var listeners: List[CategoryListener] = Nil
   private var _parent: Category = null
 
-  def beans: List[Bean] = _components.toList
-  def categories: List[Category] = _subCategories.toList
+  def children: List[AnyRef] = properties.values.toList
+
+  def entries: List[_] = properties.values.map(_.value).filter(!_.isInstanceOf[Category]).toList
+  def categories: List[Category] = properties.values.map(_.value).filter(_.isInstanceOf[Category]).toList.asInstanceOf[List[Category]]
 
   def parent: Category = _parent
 
