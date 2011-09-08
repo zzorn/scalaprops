@@ -32,7 +32,7 @@ class Category extends Bean {
 
   def addBean(bean: Bean) {
     require(bean != null)
-    require(!_components.contains(bean))
+    require(! _components.contains(bean))
 
     _components.add(bean)
 
