@@ -30,6 +30,8 @@ class Category extends Bean {
 
   def root: Category = if (parent != null) parent.root else this
 
+  def name
+
   def addBean(bean: Bean) {
     require(bean != null)
     require(! _components.contains(bean))
