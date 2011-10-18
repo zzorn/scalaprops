@@ -17,7 +17,7 @@ import java.awt.event.{MouseEvent, MouseAdapter, ComponentAdapter}
  *
  */
 class LibraryView(library: Category) extends JPanel(new MigLayout()) {
-
+/* TODO: Implement, commented out for now.
   private var categoryListeners: List[TreeModelListener] = Nil
   private var viewListeners: List[LibraryViewListener] = Nil
 
@@ -88,5 +88,5 @@ class LibraryView(library: Category) extends JPanel(new MigLayout()) {
     categoryListeners foreach {_.treeStructureChanged(new TreeModelEvent(null, path)) }
   }
 
-
+*/
 }

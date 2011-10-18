@@ -14,7 +14,7 @@ import org.scalaprops.{BeanFactory, Bean}
  */
 // TODO: Make library a bean with a list property with the child categories and child beans, and a special flag indicating to render it as a library category?
 class Category extends Bean {
-
+/* TODO: Implement, commented out for now
   // Use java array lists to get fast access by index
 //  private val _subCategories: ArrayList[Category] = new ArrayList()
 //  private var _components: ArrayList[Bean] = new ArrayList()
@@ -145,6 +145,6 @@ object Category {
     loadDirectory(rootDirectory, library)
     library
   }
-
+*/
 }
 

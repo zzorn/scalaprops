@@ -88,7 +88,7 @@ class BeanFactory {
             false
           case Some(b) =>
             bean = b
-            bean.beanName_=(typeName)
+            bean.beanType_=(typeName)
             true
         }
     }
