@@ -14,7 +14,7 @@ Now also includes support for creating property editor UI:s for editing the bean
 New BSD license.
 
 
-== Usage example ==
+== Usage examples ==
 
     import org.scalaprops._
 
@@ -47,6 +47,13 @@ New BSD license.
 
     // Create swing UI for editing the bean
     val ui: JComponent = ball.createEditor
+
+    // Save to text file
+    ball.saveToFileNamed("~/scalapropsTest.json")
+
+    // Load from a stream
+    val inputstream = /* ... */
+    val mysteryBean = Bean.loadFromStream(inputstream, "my input stream")
 
 
 == Webpage & contact ==
